@@ -420,13 +420,6 @@ export const verifyLoginOtp = async (req, res) => {
             });
         }
 
-        if (user.loginOtpExpireAt < Date.now()) {
-            return res.json({
-            success: false,
-            message: 'OTP expired'
-        });
-        }
-
         if (!user.verifyOtp || user.verifyOtpExpireAt < Date.now()) {
             return res.json({
                 success: false,
@@ -510,10 +503,7 @@ export const resendLoginOtp = async (req, res) => {
             });
         }
 
-        if (
-            user.loginOtpExpireAt &&
-            user.loginOtpExpireAt > Date.now() - 60 * 1000
-        ) {
+        if (user.verifyOtpExpireAt && user.verifyOtpExpireAt > Date.now() + 9 * 60 * 1000) {
             return res.json({
                 success: false,
                 message: 'Please wait before requesting a new OTP'
@@ -523,8 +513,8 @@ export const resendLoginOtp = async (req, res) => {
         const otp = String(Math.floor(100000 + Math.random() * 900000));
         const hashedOtp = await bcrypt.hash(otp, 10);
 
-        user.loginOtp = hashedOtp;
-        user.loginOtpExpireAt = Date.now() + 10 * 60 * 1000;
+        user.verifyOtp = hashedOtp;
+        user.verifyOtpExpireAt = Date.now() + 10 * 60 * 1000;
         await user.save();
 
         await transporter.sendMail({
