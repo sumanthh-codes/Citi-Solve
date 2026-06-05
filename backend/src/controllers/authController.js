@@ -108,6 +108,13 @@ export const sendSignupOtp = async (req, res) => {
         });
     }
 
+    if (role === 'admin') {
+        return res.status(403).json({
+            success: false,
+            message: 'Admin accounts cannot be created through public signup'
+        });
+    }
+
     if (role === 'staff' && (!state || !district || !department)) {
         return res.json({
             success: false,

@@ -36,7 +36,7 @@ export const validateSignup = [
         .isLength({ min: 5 })
         .withMessage('Password must contain uppercase, lowercase, and number'),
     body('role')
-        .isIn(['staff','citizen', 'admin'])
+        .isIn(['staff','citizen'])
         .withMessage('Invalid role'),
     (req, res, next) => {
         const errors = validationResult(req);

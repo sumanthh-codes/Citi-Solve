@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import userModel from '../models/usermodel.js';
 export const staffAuth = async (req, res, next) => {
     try {
-        const token = req.cookies.accessToken;
+        let token = req.cookies.accessToken;
         if (!token && req.headers.authorization) {
             const authHeader = req.headers.authorization;
             if (authHeader.startsWith('Bearer ')) {
