@@ -102,7 +102,7 @@ export const sendSignupOtp = async (req, res) => {
     const { email, password, role, name, state, district, department } = req.body;
 
     if (!email || !password || !role || !name) {
-        return res.json({
+        return res.status(400).json({
             success: false,
             message: 'All fields are required'
         });
@@ -116,13 +116,13 @@ export const sendSignupOtp = async (req, res) => {
     }
 
     if (role === 'staff' && (!state || !district || !department)) {
-        return res.json({
+        return res.status(400).json({
             success: false,
             message: 'State, district, and department are required for staff'
         });
     }
      if (role === 'admin' && (!state || !district)) {
-        return res.json({
+        return res.status(400).json({
             success: false,
             message: 'State and district are required for admin'
         });
@@ -133,13 +133,14 @@ export const sendSignupOtp = async (req, res) => {
         const existingUser = await userModel.findOne({ email });
 
         if (existingUser) {
-            return res.json({
+            return res.status(409).json({
                 success: false,
                 message: 'User already exists with this email'
             });
         }
 
         const otp = String(Math.floor(100000 + Math.random() * 900000));
+        const hashedOtp = await bcrypt.hash(otp, 10);
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const userData = {
@@ -148,7 +149,7 @@ export const sendSignupOtp = async (req, res) => {
             password: hashedPassword,
             role,
             isAccountVerified: false,
-            verifyOtp: otp,
+            verifyOtp: hashedOtp,
             verifyOtpExpireAt: Date.now() + 15 * 60 * 1000
         };
 
@@ -184,7 +185,7 @@ export const sendSignupOtp = async (req, res) => {
         });
 
     } catch (error) {
-        return res.json({
+        return res.status(500).json({
             success: false,
             message: 'Something went wrong. Please try again later.'
         });
@@ -195,7 +196,7 @@ export const verifySignupOtp = async (req, res) => {
     const { tempUserId, otp } = req.body;
 
     if (!tempUserId || !otp) {
-        return res.json({
+        return res.status(400).json({
             success: false,
             message: 'User ID and OTP are required'
         });
@@ -205,28 +206,30 @@ export const verifySignupOtp = async (req, res) => {
         const user = await userModel.findById(tempUserId);
 
         if (!user) {
-            return res.json({
+            return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
 
         if (user.isAccountVerified) {
-            return res.json({
+            return res.status(409).json({
                 success: false,
                 message: 'Account already Exists and verified'
             });
         }
 
-        if (user.verifyOtp !== otp) {
-            return res.json({
+        const isValidOtp = await bcrypt.compare(otp, user.verifyOtp);
+
+        if (!isValidOtp) {
+            return res.status(400).json({
                 success: false,
                 message: 'Invalid OTP'
             });
         }
 
         if (user.verifyOtpExpireAt < Date.now()) {
-            return res.json({
+            return res.status(400).json({
                 success: false,
                 message: 'OTP expired. Please request a new one'
             });
@@ -263,7 +266,7 @@ export const verifySignupOtp = async (req, res) => {
         return res.json(response);
 
     } catch (error) {
-        return res.json({
+        return res.status(500).json({
             success: false,
             message: 'Something went wrong. Please try again later.'
         });
@@ -274,7 +277,7 @@ export const resendSignupOtp = async (req, res) => {
     const { tempUserId } = req.body;
 
     if (!tempUserId) {
-        return res.json({
+        return res.status(400).json({
             success: false,
             message: 'User ID is required'
         });
@@ -284,22 +287,23 @@ export const resendSignupOtp = async (req, res) => {
         const user = await userModel.findById(tempUserId);
 
         if (!user) {
-            return res.json({
+            return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
 
         if (user.isAccountVerified) {
-            return res.json({
+            return res.status(409).json({
                 success: false,
                 message: 'Account already verified'
             });
         }
 
         const otp = String(Math.floor(100000 + Math.random() * 900000));
+        const hashedOtp = await bcrypt.hash(otp, 10);
 
-        user.verifyOtp = otp;
+        user.verifyOtp = hashedOtp;
         user.verifyOtpExpireAt = Date.now() + 15 * 60 * 1000;
         await user.save();
 
@@ -321,7 +325,7 @@ export const resendSignupOtp = async (req, res) => {
         });
 
     } catch (error) {
-        return res.json({
+        return res.status(500).json({
             success: false,
             message: 'Something went wrong. Please try again later.'
         });
@@ -332,7 +336,7 @@ export const sendLoginOtp = async (req, res) => {
     const { email, password, role } = req.body;
 
     if (!email || !password || !role) {
-        return res.json({
+        return res.status(400).json({
             success: false,
             message: 'Email, password and role are required'
         });
@@ -342,14 +346,14 @@ export const sendLoginOtp = async (req, res) => {
         const user = await userModel.findOne({ email });
 
         if (!user || user.role !== role) {
-            return res.json({
+            return res.status(401).json({
                 success: false,
                 message: 'Invalid credentials'
             });
         }
 
         if (!user.isAccountVerified) {
-            return res.json({
+            return res.status(403).json({
                 success: false,
                 message: 'Please verify your account first',
                 needsVerification: true,
@@ -359,7 +363,7 @@ export const sendLoginOtp = async (req, res) => {
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.json({
+            return res.status(401).json({
                 success: false,
                 message: 'Invalid credentials'
             });
@@ -393,7 +397,7 @@ export const sendLoginOtp = async (req, res) => {
         });
 
     } catch (error) {
-        return res.json({
+        return res.status(500).json({
             success: false,
             message: 'Something went wrong. Please try again later.'
         });
@@ -404,7 +408,7 @@ export const verifyLoginOtp = async (req, res) => {
     const { userId, otp } = req.body;
 
     if (!userId || !otp) {
-        return res.json({
+        return res.status(400).json({
             success: false,
             message: 'User ID and OTP are required'
         });
@@ -414,14 +418,14 @@ export const verifyLoginOtp = async (req, res) => {
         const user = await userModel.findById(userId);
 
         if (!user) {
-            return res.json({
+            return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
 
         if (!user.verifyOtp || user.verifyOtpExpireAt < Date.now()) {
-            return res.json({
+            return res.status(400).json({
                 success: false,
                 message: 'OTP expired'
             });
@@ -430,7 +434,7 @@ export const verifyLoginOtp = async (req, res) => {
         const isValidOtp = await bcrypt.compare(otp, user.verifyOtp);
 
         if (!isValidOtp) {
-            return res.json({
+            return res.status(400).json({
                 success: false,
                 message: 'Invalid OTP'
             });
@@ -469,7 +473,7 @@ export const verifyLoginOtp = async (req, res) => {
         return res.json(response);
 
     } catch (error) {
-        return res.json({
+        return res.status(500).json({
             success: false,
             message: 'Something went wrong. Please try again later.'
         });
@@ -480,7 +484,7 @@ export const resendLoginOtp = async (req, res) => {
     const { userId } = req.body;
 
     if (!userId) {
-        return res.json({
+        return res.status(400).json({
             success: false,
             message: 'User ID is required'
         });
@@ -490,21 +494,21 @@ export const resendLoginOtp = async (req, res) => {
         const user = await userModel.findById(userId);
 
         if (!user) {
-            return res.json({
+            return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
 
         if (!user.isAccountVerified) {
-            return res.json({
+            return res.status(403).json({
                 success: false,
                 message: 'Account not verified'
             });
         }
 
         if (user.verifyOtpExpireAt && user.verifyOtpExpireAt > Date.now() + 9 * 60 * 1000) {
-            return res.json({
+            return res.status(429).json({
                 success: false,
                 message: 'Please wait before requesting a new OTP'
             });
@@ -533,7 +537,7 @@ export const resendLoginOtp = async (req, res) => {
         });
 
     } catch (error) {
-        return res.json({
+        return res.status(500).json({
             success: false,
             message: 'Something went wrong. Please try again later.'
         });
@@ -558,7 +562,7 @@ export const logout = async (req, res) => {
             message: "Logged out successfully"
         });
     } catch (e) {
-        return res.json({ 
+        return res.status(500).json({ 
             success: false, 
             message: 'Something went wrong. Please try again later.' 
         });
@@ -624,15 +628,16 @@ export const sendResetOtp = async (req, res) => {
 
         const user = await userModel.findOne({ email });
         if (!user) {
-            return res.json({ 
+            return res.status(404).json({ 
                 success: false, 
                 message: "User not found" 
             });
         }
 
         const otp = String(Math.floor(100000 + Math.random() * 900000));
+        const hashedOtp = await bcrypt.hash(otp, 10);
 
-        user.resetOtp = otp;
+        user.resetOtp = hashedOtp;
         user.resetOtpExpireAt = Date.now() + 10 * 60 * 1000;
         await user.save();
 
@@ -653,7 +658,7 @@ export const sendResetOtp = async (req, res) => {
             message: "Reset OTP sent to email",
         });
     } catch (e) {
-        return res.json({ 
+        return res.status(500).json({ 
             success: false, 
             message: 'Something went wrong. Please try again later.' 
         });
@@ -666,14 +671,23 @@ export const resetPassword = async (req, res) => {
 
         const user = await userModel.findOne({ email });
         if (!user) {
-            return res.json({ 
+            return res.status(404).json({ 
                 success: false, 
                 message: "User not found" 
             });
         }
 
-        if (user.resetOtp !== otp || user.resetOtpExpireAt < Date.now()) {
-            return res.json({
+        if (!user.resetOtp || user.resetOtpExpireAt < Date.now()) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired OTP",
+            });
+        }
+
+        const isValidOtp = await bcrypt.compare(otp, user.resetOtp);
+
+        if (!isValidOtp) {
+            return res.status(400).json({
                 success: false,
                 message: "Invalid or expired OTP",
             });
@@ -691,7 +705,7 @@ export const resetPassword = async (req, res) => {
             message: "Password reset successful",
         });
     } catch (e) {
-        return res.json({ 
+        return res.status(500).json({ 
             success: false, 
             message: 'Something went wrong. Please try again later.' 
         });
@@ -705,7 +719,7 @@ export const isAuthenticated = async (req, res) => {
             user: buildUserResponse(req.user)
         });
     } catch (error) {
-        res.json({ 
+        res.status(500).json({ 
             success: false, 
             message: 'Something went wrong. Please try again later.' 
         });
