@@ -38,6 +38,7 @@ export const submitSupportMessage = async (req, res) => {
       support 
     });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    console.error('Submit support message error:', error);
+    res.status(400).json({ success: false, error: 'Unable to send support message. Please try again.' });
   }
 };

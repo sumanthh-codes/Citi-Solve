@@ -48,7 +48,7 @@ export const getAdminDashboard = async (req, res) => {
     });
   } catch (error) {
     console.error('District admin dashboard error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -127,7 +127,7 @@ export const getDepartmentWorkload = async (req, res) => {
     });
   } catch (error) {
     console.error('Department workload error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -204,7 +204,7 @@ export const getAllComplaints = async (req, res) => {
     });
   } catch (error) {
     console.error('Get all complaints error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -230,7 +230,7 @@ export const getComplaintById = async (req, res) => {
     res.json({ success: true, complaint });
   } catch (error) {
     console.error('Get complaint error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -291,7 +291,7 @@ export const getAvailableStaffForComplaint = async (req, res) => {
     });
   } catch (error) {
     console.error('Get available staff error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -375,7 +375,7 @@ export const assignComplaintToStaff = async (req, res) => {
     });
   } catch (error) {
     console.error('Assign complaint error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -449,7 +449,7 @@ export const getAllStaff = async (req, res) => {
     });
   } catch (error) {
     console.error('Get all staff error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -486,7 +486,7 @@ export const getStaffById = async (req, res) => {
     });
   } catch (error) {
     console.error('Get staff error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -533,7 +533,7 @@ export const getAllUsers = async (req, res) => {
     });
   } catch (error) {
     console.error('Get all users error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -569,7 +569,7 @@ export const getUserById = async (req, res) => {
     });
   } catch (error) {
     console.error('Get user error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 export const deleteUser = async (req, res) => {
@@ -595,7 +595,7 @@ export const deleteUser = async (req, res) => {
     });
   } catch (error) {
     console.error('Delete user error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -638,6 +638,6 @@ export const getAllDepartments = async (req, res) => {
     });
   } catch (error) {
     console.error('Get departments error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };

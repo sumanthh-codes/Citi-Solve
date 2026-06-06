@@ -186,7 +186,7 @@ export const sendSignupOtp = async (req, res) => {
     } catch (error) {
         return res.json({
             success: false,
-            message: error.message
+            message: 'Something went wrong. Please try again later.'
         });
     }
 };
@@ -265,7 +265,7 @@ export const verifySignupOtp = async (req, res) => {
     } catch (error) {
         return res.json({
             success: false,
-            message: error.message
+            message: 'Something went wrong. Please try again later.'
         });
     }
 };
@@ -323,7 +323,7 @@ export const resendSignupOtp = async (req, res) => {
     } catch (error) {
         return res.json({
             success: false,
-            message: error.message
+            message: 'Something went wrong. Please try again later.'
         });
     }
 };
@@ -395,7 +395,7 @@ export const sendLoginOtp = async (req, res) => {
     } catch (error) {
         return res.json({
             success: false,
-            message: error.message
+            message: 'Something went wrong. Please try again later.'
         });
     }
 };
@@ -471,7 +471,7 @@ export const verifyLoginOtp = async (req, res) => {
     } catch (error) {
         return res.json({
             success: false,
-            message: error.message
+            message: 'Something went wrong. Please try again later.'
         });
     }
 };
@@ -535,7 +535,7 @@ export const resendLoginOtp = async (req, res) => {
     } catch (error) {
         return res.json({
             success: false,
-            message: error.message
+            message: 'Something went wrong. Please try again later.'
         });
     }
 };
@@ -560,7 +560,7 @@ export const logout = async (req, res) => {
     } catch (e) {
         return res.json({ 
             success: false, 
-            message: e.message 
+            message: 'Something went wrong. Please try again later.' 
         });
     }
 };
@@ -655,7 +655,7 @@ export const sendResetOtp = async (req, res) => {
     } catch (e) {
         return res.json({ 
             success: false, 
-            message: e.message 
+            message: 'Something went wrong. Please try again later.' 
         });
     }
 };
@@ -693,7 +693,7 @@ export const resetPassword = async (req, res) => {
     } catch (e) {
         return res.json({ 
             success: false, 
-            message: e.message 
+            message: 'Something went wrong. Please try again later.' 
         });
     }
 };
@@ -707,7 +707,7 @@ export const isAuthenticated = async (req, res) => {
     } catch (error) {
         res.json({ 
             success: false, 
-            message: error.message 
+            message: 'Something went wrong. Please try again later.' 
         });
     }
 };
@@ -738,7 +738,7 @@ export const getUserProfile = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: error.message
+            message: 'Something went wrong. Please try again later.'
         });
     }
 };

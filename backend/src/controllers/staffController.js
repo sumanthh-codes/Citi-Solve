@@ -35,7 +35,7 @@ export const getStaffDashboard = async (req, res) => {
     });
   } catch (error) {
     console.error('Staff dashboard error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -99,7 +99,7 @@ export const getMyAssignedComplaints = async (req, res) => {
     });
   } catch (error) {
     console.error('Get assigned complaints error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -175,7 +175,7 @@ export const advancedSearch = async (req, res) => {
     });
   } catch (error) {
     console.error('Advanced search error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -203,7 +203,7 @@ export const getMyComplaintById = async (req, res) => {
     
   } catch (error) {
     console.error('Get complaint error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -305,7 +305,7 @@ export const updateComplaintStatus = async (req, res) => {
     
   } catch (error) {
     console.error('Update complaint status error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -376,7 +376,7 @@ export const contactAdmin = async (req, res) => {
     
   } catch (error) {
     console.error('Contact admin error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -435,6 +435,6 @@ export const getMyProfile = async (req, res) => {
     
   } catch (error) {
     console.error('Get staff profile error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };

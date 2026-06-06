@@ -125,7 +125,7 @@ if (files.length > 5) {
       });
     }
     
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -151,7 +151,7 @@ export const getComplaintById = async (req, res) => {
     
   } catch (error) {
     console.error('Get complaint error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -217,7 +217,7 @@ export const getMyCitizensComplaints = async (req, res) => {
 
   } catch (error) {
     console.error('Get complaints error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
 
@@ -313,7 +313,7 @@ export const getCitizenAnalytics = async (req, res) => {
     console.error('Get citizen analytics error:', error);
     res.status(500).json({ 
       success: false, 
-      error: error.message 
+      error: 'Something went wrong. Please try again later.' 
     });
   }
 };
