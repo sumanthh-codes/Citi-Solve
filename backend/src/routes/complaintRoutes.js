@@ -12,6 +12,7 @@ import {
 import { verifyToken } from '../middleware/auth.js';
 import { citizenAuth } from '../middleware/citizen.js';
 import { upload, validateUploadedImages } from '../middleware/upload.js';
+import { complaintSubmitLimiter } from '../middleware/rateLimiter.js';
 
 const complaintRouter = express.Router();
 
@@ -71,6 +72,7 @@ complaintRouter.get('/my-complaints', preventQueryId, getMyCitizensComplaints);
 // Submit complaint with image upload
 complaintRouter.post(
   '/submit',
+  complaintSubmitLimiter,
   upload.array('images', 5),
   validateUploadedImages,
   submitComplaint

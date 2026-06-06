@@ -1,10 +1,11 @@
 // routes/geocode.js
 import express from "express";
 import fetch from "node-fetch";
+import { geocodeLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
-router.get("/reverse", async (req, res) => {
+router.get("/reverse", geocodeLimiter, async (req, res) => {
   const { lat, lon } = req.query;
   const latitude = Number(lat);
   const longitude = Number(lon);

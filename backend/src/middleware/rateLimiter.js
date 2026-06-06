@@ -39,3 +39,30 @@ export const passwordResetLimiter = rateLimit({
         message: 'Too many password reset attempts. Please try again later.'
     }
 });
+
+export const geocodeLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 60,
+    message: {
+        success: false,
+        error: 'Too many location requests. Please try again later.'
+    }
+});
+
+export const complaintSubmitLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 10,
+    message: {
+        success: false,
+        error: 'Too many complaint submissions. Please try again later.'
+    }
+});
+
+export const supportSubmitLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 10,
+    message: {
+        success: false,
+        error: 'Too many support messages. Please try again later.'
+    }
+});
