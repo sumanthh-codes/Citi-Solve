@@ -11,7 +11,7 @@ import {
 } from '../controllers/complaintController.js';
 import { verifyToken } from '../middleware/auth.js';
 import { citizenAuth } from '../middleware/citizen.js';
-import { upload } from '../middleware/upload.js';
+import { upload, validateUploadedImages } from '../middleware/upload.js';
 
 const complaintRouter = express.Router();
 
@@ -72,6 +72,7 @@ complaintRouter.get('/my-complaints', preventQueryId, getMyCitizensComplaints);
 complaintRouter.post(
   '/submit',
   upload.array('images', 5),
+  validateUploadedImages,
   submitComplaint
 );
 
