@@ -228,6 +228,8 @@ const SupportStaff = () => {
                     <option value="Complaint Status Query">Complaint Status Query</option>
                     <option value="Feature Request">Feature Request</option>
                     <option value="Feedback">Feedback</option>
+                    <option value="Workload Concern">Workload Concern</option>
+                    <option value="Escalation">Escalation</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
