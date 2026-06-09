@@ -3,7 +3,7 @@ import { sendTooManyLoginAttemptsEmail } from '../utils/loginAlert.js';
 
 export const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 20,
     handler: async (req, res) => {
 
         if (req.body?.email) {
@@ -24,7 +24,7 @@ export const loginLimiter = rateLimit({
 
 export const otpLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, 
-    max: 100,
+    max: 10,
     message: {
         success: false,
         message: 'Too many OTP requests. Please try again after 1 hour.'

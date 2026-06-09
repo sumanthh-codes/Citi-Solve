@@ -576,6 +576,8 @@ export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Intentional design: admins can delete any citizen regardless of district.
+    // This matches the frontend which explicitly states "All citizens - not district restricted".
     const targetUser = await userModel.findOne({ _id: id, role: 'citizen' });
     
     if (!targetUser) {

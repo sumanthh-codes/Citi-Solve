@@ -2,6 +2,14 @@
 import mongoose from 'mongoose';
 import complaintModel from '../models/complaintModel.js';
 import userModel from '../models/usermodel.js';
+import transporter from '../config/nodemailer.js';
+
+const escapeHtml = (str) => String(str)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#039;');
 
 
 export const getStaffDashboard = async (req, res) => {
@@ -355,18 +363,22 @@ export const contactAdmin = async (req, res) => {
       });
     }
 
-    console.log('Admin Contact Request:', {
-      from: {
-        id: staffId,
-        name: staff.name,
-        email: staff.email,
-        department: staff.department,
-        location: `${staff.district}, ${staff.state}`
-      },
-      subject: subject.trim(),
-      category,
-      message: message.trim(),
-      timestamp: new Date()
+    await transporter.sendMail({
+      from: process.env.SENDER_EMAIL,
+      to: process.env.ADMIN_EMAIL || 'citisolveotp@gmail.com',
+      subject: `[Staff Contact] ${escapeHtml(category)}: ${escapeHtml(subject.trim())}`,
+      html: `
+        <h2>Staff Contact Request</h2>
+        <p><strong>From:</strong> ${escapeHtml(staff.name)} (${escapeHtml(staff.email)})</p>
+        <p><strong>Department:</strong> ${escapeHtml(staff.department)}</p>
+        <p><strong>Location:</strong> ${escapeHtml(staff.district)}, ${escapeHtml(staff.state)}</p>
+        <p><strong>Category:</strong> ${escapeHtml(category)}</p>
+        <p><strong>Subject:</strong> ${escapeHtml(subject.trim())}</p>
+        <p><strong>Message:</strong></p>
+        <p>${escapeHtml(message.trim())}</p>
+        <br>
+        <p><em>Reply directly to ${escapeHtml(staff.email)} to respond.</em></p>
+      `
     });
 
     res.json({
