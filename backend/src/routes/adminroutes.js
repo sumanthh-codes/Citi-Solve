@@ -16,7 +16,6 @@ import {
   deleteUser
 } from '../controllers/adminController.js';
 import { adminAuth} from '../middleware/admin.js'; 
-import { verifyToken } from '../middleware/auth.js';
 
 const validateObjectId = (req, res, next) => {
   const { id } = req.params;
@@ -47,7 +46,7 @@ const preventQueryId = (req, res, next) => {
 };
 
 const adminRouter = express.Router();
-adminRouter.use(adminAuth, verifyToken);
+adminRouter.use(adminAuth);
 adminRouter.get('/dashboard', getAdminDashboard);
 adminRouter.get('/department-workload', getDepartmentWorkload);
 adminRouter.get('/complaints',preventQueryId, getAllComplaints);

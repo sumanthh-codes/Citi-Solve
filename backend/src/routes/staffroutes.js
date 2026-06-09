@@ -11,7 +11,7 @@ import {
   contactAdmin
 } from '../controllers/staffController.js';
 import { staffAuth } from '../middleware/staff.js';
-import { verifyToken } from '../middleware/auth.js';
+
 
 const staffRouter = express.Router();
 const validateObjectId = (req, res, next) => {
@@ -42,7 +42,6 @@ const preventQueryId = (req, res, next) => {
   next();
 };
 
-staffRouter.use(verifyToken);
 staffRouter.use(staffAuth);
 staffRouter.get('/dashboard', getStaffDashboard);
 

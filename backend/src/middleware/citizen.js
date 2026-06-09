@@ -61,16 +61,8 @@ export const citizenAuth = async (req, res, next) => {
                 expired: true
             });
         }
-          console.error("AUTH ERROR NAME:", error.name);
-  console.error("AUTH ERROR MESSAGE:", error.message);
-  console.error("AUTH ERROR STACK:", error.stack);
+        console.error("AUTH ERROR:", error);
 
-  return res.status(401).json({
-    success: false,
-    errorName: error.name,
-    errorMessage: error.message
-  });
-        
         return res.status(401).json({
             success: false,
             message: 'Invalid token'

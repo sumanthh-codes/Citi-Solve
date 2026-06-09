@@ -9,7 +9,7 @@ import {
   getMyCitizensComplaints,
   getCitizenAnalytics,
 } from '../controllers/complaintController.js';
-import { verifyToken } from '../middleware/auth.js';
+
 import { citizenAuth } from '../middleware/citizen.js';
 import { upload, validateUploadedImages } from '../middleware/upload.js';
 import { complaintSubmitLimiter } from '../middleware/rateLimiter.js';
@@ -55,7 +55,6 @@ const preventQueryId = (req, res, next) => {
 };
 
 // Apply authentication to all routes
-complaintRouter.use(verifyToken);
 complaintRouter.use(citizenAuth);
 
 // ============================================
