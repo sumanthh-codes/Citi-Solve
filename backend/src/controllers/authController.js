@@ -355,9 +355,8 @@ export const sendLoginOtp = async (req, res) => {
         if (!user.isAccountVerified) {
             return res.status(403).json({
                 success: false,
-                message: 'Please verify your account first',
-                needsVerification: true,
-                tempUserId: user._id
+                message: 'Your account is not verified. Please check your email for the verification OTP.',
+                needsVerification: true
             });
         }
 

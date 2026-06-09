@@ -34,7 +34,7 @@ export const validateSignup = [
         .withMessage('Invalid email'),
     body('password')
         .isLength({ min: 5 })
-        .withMessage('Password must contain uppercase, lowercase, and number'),
+        .withMessage('Password must be at least 5 characters'),
     body('role')
         .isIn(['staff','citizen'])
         .withMessage('Invalid role'),

@@ -344,11 +344,11 @@ export const contactAdmin = async (req, res) => {
       });
     }
 
-    const validCategories = ['technical', 'workload', 'escalation', 'other'];
+    const validCategories = ['Technical Issue', 'Account Problem', 'Complaint Not Assigned', 'Complaint Status Query', 'Feature Request', 'Feedback', 'Workload Concern', 'Escalation', 'Other'];
     if (!validCategories.includes(category)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid category. Must be: technical, workload, escalation, or other'
+        error: 'Invalid category selected'
       });
     }
 
