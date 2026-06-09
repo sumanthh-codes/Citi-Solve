@@ -10,6 +10,8 @@ const CitiSolveLanding = () => {
   loginUser,
   verifyOtp,
   resendOTP,
+  sendResetOtp,
+  resetPassword,
   loading,
   error,
   otpSent,
@@ -24,6 +26,14 @@ const CitiSolveLanding = () => {
   const [detail, setdetail] = useState("citizen");
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const [authMode, setAuthMode] = useState('login');
+
+  // Forgot password state
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotStep, setForgotStep] = useState('email'); // 'email' | 'verify'
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotOtp, setForgotOtp] = useState(new Array(6).fill(''));
+  const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState(false);
 
   
   // Location state for Staff signup
@@ -167,6 +177,63 @@ const CitiSolveLanding = () => {
           role: detail,
         });
     }
+  };
+
+  const handleForgotSendOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    const ok = await sendResetOtp(forgotEmail.trim());
+    if (ok) {
+      setForgotStep('verify');
+      setForgotOtp(new Array(6).fill(''));
+    }
+  };
+
+  const handleForgotReset = async (e) => {
+    e.preventDefault();
+    setError('');
+    const enteredOtp = forgotOtp.join('');
+    const ok = await resetPassword(forgotEmail.trim(), enteredOtp, forgotNewPassword);
+    if (ok) {
+      setForgotSuccess(true);
+    }
+  };
+
+  const handleForgotOtpChange = (e, index) => {
+    if (isNaN(e.target.value)) return;
+    const next = [...forgotOtp];
+    next[index] = e.target.value;
+    setForgotOtp(next);
+    if (e.target.nextSibling && e.target.value !== '') e.target.nextSibling.focus();
+  };
+
+  const handleForgotOtpKeyDown = (e, i) => {
+    if (e.key === 'Backspace' && forgotOtp[i] === '') {
+      if (i === 0) return;
+      e.preventDefault();
+      const prev = e.target.parentNode.children[i - 1];
+      prev.focus();
+    }
+  };
+
+  const openForgot = () => {
+    setShowForgot(true);
+    setForgotStep('email');
+    setForgotEmail('');
+    setForgotOtp(new Array(6).fill(''));
+    setForgotNewPassword('');
+    setForgotSuccess(false);
+    setError('');
+  };
+
+  const closeForgot = () => {
+    setShowForgot(false);
+    setForgotStep('email');
+    setForgotEmail('');
+    setForgotOtp(new Array(6).fill(''));
+    setForgotNewPassword('');
+    setForgotSuccess(false);
+    setError('');
   };
 
 
@@ -384,6 +451,26 @@ const CitiSolveLanding = () => {
               <div className={styles.formGroup}>
                 <label className={styles.label}>Password</label>
                 <input type="password" name='password' disabled={otpSent} className={styles.input} placeholder="Enter your password" required />
+                {authMode === 'login' && !otpSent && (
+                  <button
+                    type="button"
+                    onClick={openForgot}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#bc6c25',
+                      fontSize: '13px',
+                      fontFamily: 'Poppins, sans-serif',
+                      cursor: 'pointer',
+                      textAlign: 'right',
+                      marginTop: '4px',
+                      padding: '0',
+                      textDecoration: 'underline',
+                    }}
+                  >
+                    Forgot Password?
+                  </button>
+                )}
               </div>
               {error && (
                 <div style={errorMessageStyles}>
@@ -447,6 +534,100 @@ const CitiSolveLanding = () => {
                 </>
               )}
             </form>
+          </div>
+        </div>
+      )}
+      {/* Forgot Password Modal */}
+      {showForgot && (
+        <div className={styles.modalOverlay} onClick={closeForgot}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.closeBtn} onClick={closeForgot}>×</button>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>🔑 Reset Password</h2>
+            </div>
+
+            {forgotSuccess ? (
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
+                <p style={{ color: '#283618', fontFamily: 'Poppins, sans-serif', fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>
+                  Password reset successful!
+                </p>
+                <p style={{ color: '#606c38', fontFamily: 'Poppins, sans-serif', fontSize: '14px', marginBottom: '24px' }}>
+                  You can now login with your new password.
+                </p>
+                <button
+                  onClick={closeForgot}
+                  className={styles.submitBtn}
+                >
+                  Back to Login
+                </button>
+              </div>
+            ) : forgotStep === 'email' ? (
+              <form onSubmit={handleForgotSendOtp} className={styles.formContainer}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Enter your registered email</label>
+                  <input
+                    type="email"
+                    className={styles.input}
+                    placeholder="Enter your email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                {error && <div style={errorMessageStyles}>{error}</div>}
+                <button type="submit" className={styles.submitBtn} disabled={loading}>
+                  {loading ? <div style={loaderStyles}></div> : 'Send OTP ✉️'}
+                </button>
+                <button type="button" onClick={closeForgot} className={styles.submitBtn}
+                  style={{ background: 'linear-gradient(135deg, #9ca3af, #6b7280)', marginTop: '4px' }}>
+                  Back to Login
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleForgotReset} className={styles.formContainer}>
+                <p style={{ color: '#606c38', fontFamily: 'Poppins, sans-serif', fontSize: '13px', textAlign: 'center', marginBottom: '4px' }}>
+                  OTP sent to <strong>{forgotEmail}</strong>
+                </p>
+                <div className={styles.formGroup}>
+                  <span className={styles.otpname}>Enter OTP</span>
+                  <label className={styles.contentxyz}>
+                    {forgotOtp.map((val, i) => (
+                      <input
+                        key={i}
+                        type="text"
+                        value={val}
+                        onChange={(e) => handleForgotOtpChange(e, i)}
+                        onKeyDown={(e) => handleForgotOtpKeyDown(e, i)}
+                        maxLength="1"
+                        required
+                      />
+                    ))}
+                  </label>
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>New Password</label>
+                  <input
+                    type="password"
+                    className={styles.input}
+                    placeholder="Enter new password (min 5 chars)"
+                    value={forgotNewPassword}
+                    onChange={(e) => setForgotNewPassword(e.target.value)}
+                    minLength={5}
+                    required
+                  />
+                </div>
+                {error && <div style={errorMessageStyles}>{error}</div>}
+                <button type="submit" className={styles.submitBtn} disabled={loading}>
+                  {loading ? <div style={loaderStyles}></div> : 'Reset Password 🔑'}
+                </button>
+                <button type="button" onClick={() => { setForgotStep('email'); setError(''); }}
+                  className={styles.submitBtn}
+                  style={{ background: 'linear-gradient(135deg, #9ca3af, #6b7280)', marginTop: '4px' }}>
+                  ← Back
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}
