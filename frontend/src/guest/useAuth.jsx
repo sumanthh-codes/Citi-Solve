@@ -176,6 +176,60 @@ export const useAuth = () => {
   };
 
   /* =========================
+     FORGOT PASSWORD — SEND OTP
+  ========================= */
+  const sendResetOtp = async (email) => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`${API_URL}/api/auth/send-reset-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        setError(data.message || 'Failed to send OTP');
+        return false;
+      }
+      return true;
+    } catch {
+      setError('Network error');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* =========================
+     FORGOT PASSWORD — RESET
+  ========================= */
+  const resetPassword = async (email, otp, newPassword) => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`${API_URL}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, otp, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        setError(data.message || 'Password reset failed');
+        return false;
+      }
+      return true;
+    } catch {
+      setError('Network error');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* =========================
      LOGOUT
   ========================= */
   const logout = async () => {
@@ -196,6 +250,8 @@ export const useAuth = () => {
     verifyOtp,
     resendOTP,
     logout,
+    sendResetOtp,
+    resetPassword,
     loading,
     error,
     otpSent,
