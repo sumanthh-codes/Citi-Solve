@@ -9,7 +9,7 @@ const sendWelcomeEmail = async (name, email, role) => {
     const mailOptions = {
         from: process.env.SENDER_EMAIL,
         to: email,
-        subject: '🎉 Welcome to The Caravan Chronicle!',
+        subject: '🎉 Welcome to CitiSolve!',
         html: WELCOME_EMAIL_TEMPLATE
             .replace("{{name}}", name)
             .replace("{{email}}", email)
@@ -121,13 +121,6 @@ export const sendSignupOtp = async (req, res) => {
             message: 'State, district, and department are required for staff'
         });
     }
-     if (role === 'admin' && (!state || !district)) {
-        return res.status(400).json({
-            success: false,
-            message: 'State and district are required for admin'
-        });
-    }
-  
 
     try {
         const existingUser = await userModel.findOne({ email });
@@ -169,7 +162,7 @@ export const sendSignupOtp = async (req, res) => {
         const mailOptions = {
             from: process.env.SENDER_EMAIL,
             to: email,
-            subject: '🔐 Verify Your Caravan Chronicle Account',
+            subject: '🔐 Verify Your CitiSolve Account',
             html: EMAIL_VERIFY_TEMPLATE
                 .replace("{{otp}}", otp)
                 .replace("{{name}}", name)
@@ -310,7 +303,7 @@ export const resendSignupOtp = async (req, res) => {
         const mailOptions = {
             from: process.env.SENDER_EMAIL,
             to: user.email,
-            subject: '🔐 Verify Your Caravan Chronicle Account',
+            subject: '🔐 Verify Your CitiSolve Account',
             html: EMAIL_VERIFY_TEMPLATE
                 .replace("{{otp}}", otp)
                 .replace("{{name}}", user.name)
@@ -523,7 +516,7 @@ export const resendLoginOtp = async (req, res) => {
         await transporter.sendMail({
             from: process.env.SENDER_EMAIL,
             to: user.email,
-            subject: '🔐 Login OTP – Caravan Chronicle',
+            subject: '🔐 Login OTP – CitiSolve',
             html: EMAIL_VERIFY_TEMPLATE
                 .replace('{{otp}}', otp)
                 .replace('{{name}}', user.name)
@@ -643,7 +636,7 @@ export const sendResetOtp = async (req, res) => {
         const mailOptions = {
             from: process.env.SENDER_EMAIL,
             to: email,
-            subject: "🔑 Reset Your Caravan Chronicle Password",
+            subject: "🔑 Reset Your CitiSolve Password",
             html: PASSWORD_RESET_TEMPLATE
                 .replace("{{otp}}", otp)
                 .replace("{{name}}", user.name)
@@ -670,9 +663,9 @@ export const resetPassword = async (req, res) => {
 
         const user = await userModel.findOne({ email });
         if (!user) {
-            return res.status(404).json({ 
+            return res.status(400).json({ 
                 success: false, 
-                message: "User not found" 
+                message: "Invalid or expired OTP" 
             });
         }
 

@@ -4,7 +4,7 @@ export const WELCOME_EMAIL_TEMPLATE = `
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to The Caravan Chronicle</title>
+    <title>Welcome to CitiSolve</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #4a1a5e 0%, #2d0f3d 100%);">
     <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #4a1a5e 0%, #2d0f3d 100%); padding: 40px 20px;">
@@ -40,7 +40,7 @@ export const WELCOME_EMAIL_TEMPLATE = `
                             </div>
                             
                             <h1 style="margin: 0; color: white; font-size: 48px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.3); letter-spacing: -1px;">
-                                🎭 Welcome to The Caravan Chronicle! 🎪
+                                🏛️ Welcome to CitiSolve!
                             </h1>
                             <p style="margin: 20px 0 0 0; color: rgba(255,255,255,0.95); font-size: 20px; font-weight: 400;">
                                 Tracking and Fixing the City's Daily Troubles
@@ -56,7 +56,7 @@ export const WELCOME_EMAIL_TEMPLATE = `
                                     Hey {{name}}! 👋
                                 </h2>
                                 <p style="margin: 0; color: #1e293b; font-size: 16px; line-height: 1.8;">
-                                    Welcome aboard <strong style="color: #7c2d8e;">The Caravan Chronicle</strong>! You're now part of our traveling city's mission to keep things running smoothly. As the show moves from place to place, your voice helps us fix problems and make the circus better for everyone!
+                                    Welcome aboard <strong style="color: #7c2d8e;">CitiSolve</strong>! You're now part of our city's mission to keep things running smoothly. Your voice helps us fix problems and make the city better for everyone!
                                 </p>
                             </div>
 
@@ -130,10 +130,10 @@ export const WELCOME_EMAIL_TEMPLATE = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #7c2d8e 0%, #4a1a5e 100%); padding: 35px 40px; text-align: center;">
                             <p style="margin: 0 0 12px 0; color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500;">
-                                🎪 The Caravan Chronicle - Keeping Our Traveling City Running Smoothly
+                                🏛️ CitiSolve - Empowering Citizens, Transforming Cities
                             </p>
                             <p style="margin: 0; color: rgba(255,255,255,0.7); font-size: 12px;">
-                                © 2024 The Circus of Wonders. All rights reserved.
+                                © 2025 CitiSolve. All rights reserved.
                             </p>
                         </td>
                     </tr>
@@ -179,7 +179,7 @@ export const EMAIL_VERIFY_TEMPLATE = `
                                 🎭 Verify Your Email
                             </h1>
                             <p style="margin: 15px 0 0 0; color: rgba(255,255,255,0.95); font-size: 18px; font-weight: 600;">
-                                Your Ticket to Join The Caravan
+                                Your Verification Code
                             </p>
                         </td>
                     </tr>
@@ -192,7 +192,7 @@ export const EMAIL_VERIFY_TEMPLATE = `
                                     Hi {{name}}! 🎪
                                 </h2>
                                 <p style="margin: 0; color: #1e293b; font-size: 16px; line-height: 1.8;">
-                                    Welcome to <strong style="color: #7c2d8e;">The Caravan Chronicle</strong>! To complete your registration and start reporting issues, please verify your email using the code below.
+                                    Welcome to <strong style="color: #7c2d8e;">CitiSolve</strong>! To complete your registration and start reporting issues, please verify your email using the code below.
                                 </p>
                             </div>
 
@@ -211,7 +211,7 @@ export const EMAIL_VERIFY_TEMPLATE = `
 
                             <div style="background: linear-gradient(135deg, #fff8e8 0%, #ffe8b0 100%); border-radius: 12px; padding: 20px 25px; margin: 30px 0; border-left: 4px solid #ffa500;">
                                 <p style="margin: 0; color: #92400e; font-size: 15px; line-height: 1.7;">
-                                    <strong style="color: #b45309;">⚠️ Security Notice:</strong> Never share this code with anyone, even if they claim to be from The Caravan Chronicle. We'll never ask for your OTP!
+                                    <strong style="color: #b45309;">⚠️ Security Notice:</strong> Never share this code with anyone, even if they claim to be from CitiSolve. We'll never ask for your OTP!
                                 </p>
                             </div>
 
@@ -227,10 +227,10 @@ export const EMAIL_VERIFY_TEMPLATE = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #7c2d8e 0%, #4a1a5e 100%); padding: 35px 40px; text-align: center;">
                             <p style="margin: 0 0 12px 0; color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500;">
-                                🎭 The Caravan Chronicle Security Team
+                                🏛️ CitiSolve Security Team
                             </p>
                             <p style="margin: 0; color: rgba(255,255,255,0.7); font-size: 12px;">
-                                © 2024 The Circus of Wonders. All rights reserved.
+                                © 2025 CitiSolve. All rights reserved.
                             </p>
                         </td>
                     </tr>
@@ -289,7 +289,7 @@ export const PASSWORD_RESET_TEMPLATE = `
                                     Hi {{name}}! 👋
                                 </h2>
                                 <p style="margin: 0; color: #1e293b; font-size: 16px; line-height: 1.8;">
-                                    We received a request to reset your password for <strong style="color: #7c2d8e;">The Caravan Chronicle</strong>. Use the secure code below to create a new password.
+                                    We received a request to reset your password for <strong style="color: #7c2d8e;">CitiSolve</strong>. Use the secure code below to create a new password.
                                 </p>
                             </div>
 
@@ -308,7 +308,7 @@ export const PASSWORD_RESET_TEMPLATE = `
 
                             <div style="background: linear-gradient(135deg, #fff8e8 0%, #ffe8b0 100%); border-radius: 12px; padding: 20px 25px; margin: 30px 0; border-left: 4px solid #ffa500;">
                                 <p style="margin: 0; color: #92400e; font-size: 15px; line-height: 1.7;">
-                                    <strong style="color: #b45309;">🚨 Urgent:</strong> This code expires in just 10 minutes! Never share it with anyone. The Caravan Chronicle team will NEVER ask for your reset code.
+                                    <strong style="color: #b45309;">🚨 Urgent:</strong> This code expires in just 10 minutes! Never share it with anyone. The CitiSolve team will NEVER ask for your reset code.
                                 </p>
                             </div>
 
@@ -324,10 +324,10 @@ export const PASSWORD_RESET_TEMPLATE = `
                     <tr>
                         <td style="background: linear-gradient(135deg, #7c2d8e 0%, #4a1a5e 100%); padding: 35px 40px; text-align: center;">
                             <p style="margin: 0 0 12px 0; color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500;">
-                                🎭 The Caravan Chronicle Security Team
+                                🏛️ CitiSolve Security Team
                             </p>
                             <p style="margin: 0; color: rgba(255,255,255,0.7); font-size: 12px;">
-                                © 2024 The Circus of Wonders. All rights reserved.
+                                © 2025 CitiSolve. All rights reserved.
                             </p>
                         </td>
                     </tr>
@@ -377,7 +377,7 @@ If this was you, no action is required.
 
 <tr>
 <td style="background:#020617;color:#94a3b8;padding:15px;text-align:center;font-size:12px">
-Caravan Chronicle • Security Notification
+CitiSolve • Security Notification
 </td>
 </tr>
 </table>
@@ -422,7 +422,7 @@ export const TOO_MANY_LOGIN_ATTEMPTS_TEMPLATE = `
 
 <tr>
 <td style="background:#020617;color:#94a3b8;padding:15px;text-align:center;font-size:12px">
-Caravan Chronicle • Account Protection
+CitiSolve • Account Protection
 </td>
 </tr>
 </table>
@@ -467,7 +467,7 @@ export const TOO_MANY_PASSWORD_ATTEMPTS_TEMPLATE = `
 
 <tr>
 <td style="background:#020617;color:#94a3b8;padding:15px;text-align:center;font-size:12px">
-Caravan Chronicle • Security Alert
+CitiSolve • Security Alert
 </td>
 </tr>
 </table>
