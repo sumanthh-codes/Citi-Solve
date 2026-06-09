@@ -269,4 +269,4 @@ const SupportStaff = () => {
   );
 };
 
-export default SupportStaff;
+export default SupportStaff
