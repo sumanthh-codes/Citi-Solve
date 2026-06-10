@@ -230,6 +230,38 @@ export const useAuth = () => {
   };
 
   /* =========================
+     GOOGLE LOGIN - CITIZEN
+  ========================= */
+  const googleLoginUser = async (credential) => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ credential }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.success === false) {
+        setError(data.message || 'Google login failed');
+        return false;
+      }
+
+      navigate('/citizen/home');
+      return true;
+    } catch {
+      setError('Network error');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* =========================
      LOGOUT
   ========================= */
   const logout = async () => {
@@ -252,6 +284,7 @@ export const useAuth = () => {
     logout,
     sendResetOtp,
     resetPassword,
+    googleLoginUser,
     loading,
     error,
     otpSent,

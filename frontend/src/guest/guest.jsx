@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './gueststyle.module.css';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './useAuth';
+import { GoogleLogin } from '@react-oauth/google';
 
 const CitiSolveLanding = () => {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ const CitiSolveLanding = () => {
   resendOTP,
   sendResetOtp,
   resetPassword,
+  googleLoginUser,
   loading,
   error,
   otpSent,
@@ -216,6 +218,15 @@ const CitiSolveLanding = () => {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse.credential) {
+      setError('Google login failed. Please try again.');
+      return;
+    }
+
+    await googleLoginUser(credentialResponse.credential);
+  };
+
   const openForgot = () => {
     setShowForgot(true);
     setForgotStep('email');
@@ -350,6 +361,28 @@ const CitiSolveLanding = () => {
               )}
             </div>
             <form onSubmit={handleAuthSubmit} className={styles.formContainer}>
+              {detail === 'citizen' && !otpSent && (
+                <div className={styles.googleAuthBlock}>
+                  <div className={styles.authDivider}>
+                    <span></span>
+                    <p>or continue as citizen</p>
+                    <span></span>
+                  </div>
+                  <div className={styles.googleButtonWrap}>
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={() => setError('Google login failed. Please try again.')}
+                      text={authMode === 'signup' ? 'signup_with' : 'signin_with'}
+                      theme="outline"
+                      size="large"
+                      shape="rectangular"
+                      logo_alignment="left"
+                      width="400"
+                    />
+                  </div>
+                  <p className={styles.googleHint}>Google Sign-In is available for citizen accounts only.</p>
+                </div>
+              )}
               {authMode === 'signup' && (
                 <div className={styles.formGroup}>
                   <label className={styles.label}>Full Name</label>

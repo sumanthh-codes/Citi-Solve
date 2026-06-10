@@ -360,6 +360,54 @@ select:disabled {
   gap: 16px;
 }
 
+.googleAuthBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(254, 250, 224, 0.82);
+  border: 1px solid #e0d5b7;
+  border-radius: 12px;
+}
+
+.authDivider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.authDivider span {
+  height: 1px;
+  background: #d7c89f;
+}
+
+.authDivider p {
+  margin: 0;
+  color: #606c38;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.googleButtonWrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.googleButtonWrap > div {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.googleHint {
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+  color: #606c38;
+}
+
 .formGroup {
   display: flex;
   flex-direction: column;
