@@ -2,8 +2,72 @@
 import complaintModel from '../models/complaintModel.js';
 import mongoose from 'mongoose';
 import { uploadToCloudinary, deleteFromCloudinary } from '../utils/cloudinaryUpload.js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const VALID_CATEGORIES = ['roads', 'power', 'sanitation', 'water', 'other'];
+
+// =========================
+// CATEGORY LABELS FOR AI
+// =========================
+const CATEGORY_LABELS = {
+  roads:      'roads and infrastructure issues (potholes, damaged roads, broken footpaths, construction debris)',
+  power:      'power and electricity issues (broken streetlights, fallen electric poles, exposed wires)',
+  sanitation: 'sanitation and garbage issues (overflowing bins, garbage dumps, sewage overflow, dirty areas)',
+  water:      'water supply issues (burst pipes, water leakage, flooded roads due to water, water shortage)',
+  other:      'general civic issues (any public infrastructure problem)'
+};
+
+// =========================
+// GEMINI IMAGE VERIFICATION
+// =========================
+const verifyImageWithGemini = async (imageBuffer, mimeType, category) => {
+  try {
+    const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+    const base64Image = imageBuffer.toString('base64');
+    const categoryLabel = CATEGORY_LABELS[category] || 'civic issue';
+
+    const prompt = `You are a complaint image verifier for a civic issue reporting platform.
+
+The user selected the complaint category: "${category}" which covers: ${categoryLabel}.
+
+Look at this image and answer ONLY with a JSON object in this exact format (no extra text):
+{
+  "matches": true or false,
+  "confidence": a number from 0 to 100,
+  "reason": "one short sentence explaining why"
+}
+
+Rules:
+- "matches" = true if the image clearly shows a civic/infrastructure problem related to the category
+- "matches" = false if the image is completely unrelated (e.g., a selfie, food, animal) 
+- For the "other" category, any civic issue image is acceptable
+- If the image is unclear or ambiguous, give confidence between 30-60
+- Screenshots, photos, downloaded images are all valid — judge only the CONTENT`;
+
+    const result = await model.generateContent([
+      { text: prompt },
+      { inlineData: { mimeType: mimeType || 'image/jpeg', data: base64Image } }
+    ]);
+
+    const responseText = result.response.text().trim();
+    // Extract JSON from response (handle markdown code blocks)
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('Invalid AI response format');
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    return {
+      matches: parsed.matches ?? true,
+      confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 50,
+      reason: parsed.reason || ''
+    };
+  } catch (err) {
+    console.error('Gemini verification error:', err.message);
+    // On AI failure, allow submission (don't block users due to AI errors)
+    return { matches: true, confidence: 50, reason: 'AI check skipped' };
+  }
+};
 
 export const submitComplaint = async (req, res) => {
   const uploadedUrls = [];
@@ -71,7 +135,6 @@ if (files.length > 5) {
   });
 }
 
-
   for (const file of req.files) {
     if (!file.mimetype.startsWith('image/')) {
       return res.status(400).json({
@@ -79,7 +142,28 @@ if (files.length > 5) {
         error: 'Only image files are allowed'
       });
     }
+  }
 
+  // =========================
+  // GEMINI CATEGORY VERIFICATION
+  // Verify the first image matches the selected category before uploading
+  // =========================
+  const firstFile = files[0];
+  if (firstFile) {
+    const aiResult = await verifyImageWithGemini(firstFile.buffer, firstFile.mimetype, category);
+    console.log('AI verification result:', aiResult);
+
+    if (!aiResult.matches && aiResult.confidence < 40) {
+      return res.status(400).json({
+        success: false,
+        error: `Image does not match the selected category "${category}". ${aiResult.reason} Please upload an image that shows the actual issue.`,
+        aiCheck: { failed: true, confidence: aiResult.confidence, reason: aiResult.reason }
+      });
+    }
+  }
+
+  // Upload all images to Cloudinary
+  for (const file of files) {
     const url = await uploadToCloudinary(file.buffer, 'complaints');
     uploadedUrls.push(url);
   }

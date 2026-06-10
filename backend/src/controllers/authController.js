@@ -178,6 +178,7 @@ export const sendSignupOtp = async (req, res) => {
         });
 
     } catch (error) {
+        comsole.error('Error in sendSignupOtp:', error.message);
         return res.status(500).json({
             success: false,
             message: 'Something went wrong. Please try again later.'
@@ -259,6 +260,7 @@ export const verifySignupOtp = async (req, res) => {
         return res.json(response);
 
     } catch (error) {
+        console.error('Error in verifySignupOtp:', error.message);
         return res.status(500).json({
             success: false,
             message: 'Something went wrong. Please try again later.'
@@ -362,6 +364,7 @@ export const sendLoginOtp = async (req, res) => {
         }
 
         const otp = String(Math.floor(100000 + Math.random() * 900000));
+        console.log(otp);
 
         const hashedOtp = await bcrypt.hash(otp, 10);
 
@@ -373,7 +376,7 @@ export const sendLoginOtp = async (req, res) => {
         const mailOptions = {
             from: process.env.SENDER_EMAIL,
             to: user.email,
-            subject: '🔐 Login OTP – Caravan Chronicle',
+            subject: '🔐 Login OTP – CitiSolve',
             html: EMAIL_VERIFY_TEMPLATE
                 .replace('{{otp}}', otp)
                 .replace('{{name}}', user.name)
