@@ -11,7 +11,8 @@ import {
     resendSignupOtp,
     sendLoginOtp,
     verifyLoginOtp,
-    resendLoginOtp
+    resendLoginOtp,
+    googleLogin
 } from '../controllers/authController.js';
 
 import { verifyToken} from '../middleware/auth.js';
@@ -27,6 +28,7 @@ authRouter.post('/resend-signup-otp', otpLimiter, resendSignupOtp);
 authRouter.post('/send-login-otp',loginLimiter,validateLogin,sendLoginOtp);
 authRouter.post('/verify-login-otp',otpLimiter,verifyLoginOtp);
 authRouter.post('/resend-login-otp',otpLimiter,resendLoginOtp);
+authRouter.post('/google', loginLimiter, googleLogin);
 authRouter.post('/send-reset-otp', passwordResetLimiter, sendResetOtp);
 authRouter.post('/reset-password', passwordResetLimiter, resetPassword);
 authRouter.post('/refresh-token', refreshAccessToken);

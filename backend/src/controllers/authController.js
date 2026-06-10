@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import userModel from '../models/usermodel.js';
 import transporter from "../config/nodemailer.js";
 import { WELCOME_EMAIL_TEMPLATE, EMAIL_VERIFY_TEMPLATE, PASSWORD_RESET_TEMPLATE } from '../config/emailTemplates.js';
@@ -17,6 +18,8 @@ const sendWelcomeEmail = async (name, email, role) => {
     };
     await transporter.sendMail(mailOptions);
 };
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateAccessToken = (userId, role) => {
     return jwt.sign(
@@ -355,6 +358,13 @@ export const sendLoginOtp = async (req, res) => {
             });
         }
 
+        if (!user.password) {
+            return res.status(400).json({
+                success: false,
+                message: 'This account uses Google Sign-In. Please continue with Google or reset your password.'
+            });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({
@@ -395,6 +405,90 @@ export const sendLoginOtp = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Something went wrong. Please try again later.'
+        });
+    }
+};
+
+export const googleLogin = async (req, res) => {
+    try {
+        const { credential } = req.body;
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+
+        if (!clientId) {
+            return res.status(500).json({
+                success: false,
+                message: 'Google Sign-In is not configured'
+            });
+        }
+
+        if (!credential) {
+            return res.status(400).json({
+                success: false,
+                message: 'Google credential is required'
+            });
+        }
+
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: clientId
+        });
+
+        const payload = ticket.getPayload();
+        const email = payload?.email?.toLowerCase();
+        const name = payload?.name || email?.split('@')[0] || 'Citizen';
+        const googleId = payload?.sub;
+
+        if (!email || !googleId || !payload.email_verified) {
+            return res.status(401).json({
+                success: false,
+                message: 'Google account could not be verified'
+            });
+        }
+
+        let user = await userModel.findOne({ email });
+
+        if (user && user.role !== 'citizen') {
+            return res.status(403).json({
+                success: false,
+                message: 'Please use normal login for staff or admin accounts'
+            });
+        }
+
+        if (!user) {
+            user = await userModel.create({
+                name,
+                email,
+                googleId,
+                authProvider: 'google',
+                role: 'citizen',
+                isAccountVerified: true
+            });
+        } else {
+            user.googleId = user.googleId || googleId;
+            user.authProvider = user.password ? 'local_google' : 'google';
+            user.isAccountVerified = true;
+            if (!user.name) user.name = name;
+            await user.save();
+        }
+
+        const accessToken = generateAccessToken(user._id, user.role);
+        const refreshToken = generateRefreshToken(user._id, user.role);
+
+        user.refreshToken = refreshToken;
+        await user.save();
+
+        setTokenCookies(res, accessToken, refreshToken);
+
+        return res.json({
+            success: true,
+            message: 'Google login successful',
+            user: buildUserResponse(user)
+        });
+    } catch (error) {
+        console.error('Google login error:', error);
+        return res.status(401).json({
+            success: false,
+            message: 'Google login failed'
         });
     }
 };
