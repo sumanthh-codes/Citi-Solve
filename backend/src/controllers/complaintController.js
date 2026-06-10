@@ -6,15 +6,25 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const VALID_CATEGORIES = ['roads', 'power', 'sanitation', 'water', 'other'];
 
+const GEMINI_MODEL = 'gemini-2.5-flash';
+
 // =========================
 // CATEGORY LABELS FOR AI
 // =========================
 const CATEGORY_LABELS = {
-  roads:      'roads and infrastructure issues (potholes, damaged roads, broken footpaths, construction debris)',
-  power:      'power and electricity issues (broken streetlights, fallen electric poles, exposed wires)',
-  sanitation: 'sanitation and garbage issues (overflowing bins, garbage dumps, sewage overflow, dirty areas)',
-  water:      'water supply issues (burst pipes, water leakage, flooded roads due to water, water shortage)',
-  other:      'general civic issues (any public infrastructure problem)'
+  roads:      'roads and infrastructure issues showing an actual problem such as potholes, damaged roads, broken footpaths, blocked roads, unsafe construction debris, or road flooding',
+  power:      'power and electricity issues showing an actual problem such as broken streetlights, fallen electric poles, exposed wires, sparking equipment, or damaged public electrical infrastructure',
+  sanitation: 'sanitation and pollution issues showing an actual problem such as overflowing bins, garbage dumps, sewage overflow, dirty public areas, stagnant dirty water, or visible waste pollution',
+  water:      'water supply or water pollution issues showing an actual problem such as burst pipes, leakage, flooding, dirty/stagnant polluted water, contaminated public water, or visible water shortage impact',
+  other:      'general civic issues showing an actual public problem or hazard, not a clean normal scene'
+};
+
+const CATEGORY_REJECTION_EXAMPLES = {
+  roads: 'Reject clean roads, normal streets, vehicles, selfies, buildings, or landscapes where no road damage/blockage/hazard is visible.',
+  power: 'Reject normal lights, normal electrical appliances, clean buildings, or scenes where no damaged public electrical issue is visible.',
+  sanitation: 'Reject clean places, normal bins, household items, food, selfies, or scenes where no garbage, sewage, dirt, or pollution issue is visible.',
+  water: 'Reject clean drinking water, water bottles, glasses of water, clean taps, normal rivers/lakes/pools, or any water image with no leakage, flooding, contamination, shortage, or public issue.',
+  other: 'Reject selfies, food, animals, clean scenery, normal objects, or anything that does not show a real civic complaint issue.'
 };
 
 // =========================
@@ -22,8 +32,18 @@ const CATEGORY_LABELS = {
 // =========================
 const verifyImageWithGemini = async (imageBuffer, mimeType, category) => {
   try {
-    const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+    if (!apiKey) {
+      return {
+        decision: 'warn',
+        matches: true,
+        confidence: 50,
+        reason: 'AI validation is unavailable because the Gemini API key is missing.'
+      };
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
     const base64Image = imageBuffer.toString('base64');
     const categoryLabel = CATEGORY_LABELS[category] || 'civic issue';
@@ -34,15 +54,20 @@ The user selected the complaint category: "${category}" which covers: ${category
 
 Look at this image and answer ONLY with a JSON object in this exact format (no extra text):
 {
-  "matches": true or false,
+  "isCivicIssue": true or false,
+  "matchesCategory": true or false,
   "confidence": a number from 0 to 100,
   "reason": "one short sentence explaining why"
 }
 
 Rules:
-- "matches" = true if the image clearly shows a civic/infrastructure problem related to the category
-- "matches" = false if the image is completely unrelated (e.g., a selfie, food, animal) 
-- For the "other" category, any civic issue image is acceptable
+- "isCivicIssue" = true only if the image shows a visible public civic issue, damage, pollution, hazard, leakage, blockage, contamination, or infrastructure problem.
+- "isCivicIssue" = false if the image is clean/normal, unrelated, decorative, personal, private indoor content, or does not show a real complaint-worthy public issue.
+- "matchesCategory" = true only if the visible civic issue belongs to the selected category.
+- "matchesCategory" = false if the image shows a civic issue but it clearly belongs to another category.
+- Do not accept an image just because it contains an object related to the category. It must show a complaint-worthy problem.
+- Category-specific rejection rule: ${CATEGORY_REJECTION_EXAMPLES[category] || CATEGORY_REJECTION_EXAMPLES.other}
+- For the "other" category, any real visible civic issue is acceptable, but clean normal scenes are not acceptable.
 - If the image is unclear or ambiguous, give confidence between 30-60
 - Screenshots, photos, downloaded images are all valid — judge only the CONTENT`;
 
@@ -57,20 +82,59 @@ Rules:
     if (!jsonMatch) throw new Error('Invalid AI response format');
 
     const parsed = JSON.parse(jsonMatch[0]);
-    return {
-      matches: parsed.matches ?? true,
-      confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 50,
-      reason: parsed.reason || ''
-    };
+    const isCivicIssue =
+      parsed.isCivicIssue === true ||
+      String(parsed.isCivicIssue).trim().toLowerCase() === 'true';
+    const matchesCategory =
+      parsed.matchesCategory === true ||
+      String(parsed.matchesCategory).trim().toLowerCase() === 'true';
+    const confidence = Math.max(0, Math.min(100, Number(parsed.confidence)));
+    const safeConfidence = Number.isFinite(confidence) ? confidence : 50;
+    const reason = parsed.reason || 'Gemini returned an unclear validation result.';
+
+    if (!isCivicIssue) {
+      return {
+        decision: 'block',
+        isCivicIssue,
+        matchesCategory,
+        confidence: safeConfidence,
+        reason: reason || 'The image does not show a real civic complaint issue.'
+      };
+    }
+
+    if (!matchesCategory && safeConfidence >= 70) {
+      return {
+        decision: 'block',
+        isCivicIssue,
+        matchesCategory,
+        confidence: safeConfidence,
+        reason: reason || 'The image shows a civic issue, but it does not match the selected category.'
+      };
+    }
+
+    if (safeConfidence < 30) {
+      return { decision: 'block', isCivicIssue, matchesCategory, confidence: safeConfidence, reason };
+    }
+
+    if (!matchesCategory || safeConfidence <= 70) {
+      return { decision: 'warn', isCivicIssue, matchesCategory, confidence: safeConfidence, reason };
+    }
+
+    return { decision: 'allow', isCivicIssue, matchesCategory, confidence: safeConfidence, reason };
   } catch (err) {
     console.error('Gemini verification error:', err.message);
-    // On AI failure, allow submission (don't block users due to AI errors)
-    return { matches: true, confidence: 50, reason: 'AI check skipped' };
+    return {
+      decision: 'warn',
+      matches: true,
+      confidence: 50,
+      reason: 'AI validation could not be completed. Please make sure the image shows the actual issue.'
+    };
   }
 };
 
 export const submitComplaint = async (req, res) => {
   const uploadedUrls = [];
+  const aiWarnings = [];
   
   try {
     const { title, description, category, state, district, landmark, pincode,comment } = req.body;
@@ -153,11 +217,18 @@ if (files.length > 5) {
     const aiResult = await verifyImageWithGemini(firstFile.buffer, firstFile.mimetype, category);
     console.log('AI verification result:', aiResult);
 
-    if (!aiResult.matches && aiResult.confidence < 40) {
+    if (aiResult.decision === 'block') {
       return res.status(400).json({
         success: false,
         error: `Image does not match the selected category "${category}". ${aiResult.reason} Please upload an image that shows the actual issue.`,
         aiCheck: { failed: true, confidence: aiResult.confidence, reason: aiResult.reason }
+      });
+    }
+
+    if (aiResult.decision === 'warn') {
+      aiWarnings.push({
+        confidence: aiResult.confidence,
+        reason: aiResult.reason
       });
     }
   }
@@ -187,6 +258,7 @@ if (files.length > 5) {
     res.status(201).json({ 
       success: true, 
       message: 'Complaint submitted successfully',
+      warning: aiWarnings[0] || null,
       complaint 
     });
     

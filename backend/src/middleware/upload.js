@@ -21,8 +21,17 @@ const isAllowedImageBuffer = (buffer) => {
   const isWebp =
     buffer.slice(0, 4).toString("ascii") === "RIFF" &&
     buffer.slice(8, 12).toString("ascii") === "WEBP";
+  const boxBrand = buffer.slice(4, 12).toString("ascii");
+  const isAvif = boxBrand === "ftypavif" || boxBrand === "ftypavis";
+  const isHeic =
+    boxBrand === "ftypheic" ||
+    boxBrand === "ftypheix" ||
+    boxBrand === "ftyphevc" ||
+    boxBrand === "ftyphevx" ||
+    boxBrand === "ftypmif1" ||
+    boxBrand === "ftypmsf1";
 
-  return isJpeg || isPng || isGif || isWebp;
+  return isJpeg || isPng || isGif || isWebp || isAvif || isHeic;
 };
 
 export const upload = multer({
@@ -47,7 +56,7 @@ export const validateUploadedImages = (req, res, next) => {
   if (hasInvalidFile) {
     return res.status(400).json({
       success: false,
-      error: "Only valid image files are allowed"
+      error: "Only valid image files are allowed. Please upload JPG, PNG, GIF, WebP, HEIC, HEIF, or AVIF."
     });
   }
 
