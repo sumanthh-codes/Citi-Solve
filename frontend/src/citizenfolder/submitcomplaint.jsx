@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import exifr from "exifr";
 import { useNavigate } from "react-router-dom";
 import styles from "./submitcomplaintstyle.module.css";
 import { useSubmitPortal } from "./hooks/submitcomplainthooks.jsx";
@@ -26,6 +27,8 @@ const SubmitComplaint = () => {
   const [image, setImage] = useState("");
   const [fileName, setFileName] = useState("");
   const [imageError, setImageError] = useState("");
+  const [locationWarning, setLocationWarning] = useState("");
+  const [liveGPS, setLiveGPS] = useState(null); // { lat, lng }
 
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -83,6 +86,8 @@ const SubmitComplaint = () => {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+        // Store live GPS for EXIF comparison later
+        setLiveGPS({ lat: latitude, lng: longitude });
         try {
           const res = await fetch(
             `${import.meta.env.VITE_BACKEND_URL}/api/geocode/reverse?lat=${latitude}&lon=${longitude}`
@@ -115,17 +120,50 @@ const SubmitComplaint = () => {
   // =========================
   // HANDLERS
   // =========================
-  const handleFileChange = (e) => {
+  // Haversine distance in km between two GPS coords
+  const getDistanceKm = (lat1, lng1, lat2, lng2) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const handleFileChange = async (e) => {
     const el = document.getElementById("file-upload");
+    setLocationWarning("");
+
     if (e.target.files.length > 0) {
-      setImage(e.target.files[0]);
-      setFileName(e.target.files[0].name);
-      if(el) el.style.backgroundColor = "#81b183ff";
+      const file = e.target.files[0];
+      setImage(file);
+      setFileName(file.name);
+      if (el) el.style.backgroundColor = "#81b183ff";
       setImageError("");
+
+      // ---- EXIF GPS Check (soft warning only) ----
+      try {
+        const gps = await exifr.gps(file);
+        if (gps && gps.latitude && gps.longitude && liveGPS) {
+          const dist = getDistanceKm(liveGPS.lat, liveGPS.lng, gps.latitude, gps.longitude);
+          if (dist > 5) {
+            setLocationWarning(
+              `⚠️ This image was taken ~${Math.round(dist)} km away from your detected location. Please make sure the image is from the actual complaint site.`
+            );
+          }
+        }
+        // If no EXIF GPS found → no check, proceed normally
+      } catch (err) {
+        // EXIF read failed silently — no block
+      }
     } else {
       setImage("");
       setFileName("");
-      if(el) el.style.backgroundColor = "#fefae0";
+      if (el) el.style.backgroundColor = "#fefae0";
       setImageError("Please upload an image");
     }
   };
@@ -214,6 +252,8 @@ const SubmitComplaint = () => {
     setFormErrors({ title: false, category: false, description: false, landmark: false });
     setImageError("");
     setLocationError("");
+    setLocationWarning("");
+    setLiveGPS(null);
   };
 
   // UI Helpers
@@ -521,6 +561,22 @@ const SubmitComplaint = () => {
                 {fileName && <p style={{ marginTop: "8px", fontSize: "13px", color: "#606c38" }}>Selected file: {fileName}</p>}
               </div>
               {imageError && <span style={{ fontSize: "10px", color: "#ef5350" }}>{imageError}</span>}
+              {locationWarning && (
+                <div style={{
+                  background: "#fff8e1",
+                  border: "1px solid #ffcc02",
+                  borderRadius: "10px",
+                  padding: "10px 14px",
+                  fontSize: "13px",
+                  color: "#7a5c00",
+                  lineHeight: "1.5"
+                }}>
+                  {locationWarning}
+                  <div style={{ fontSize: "11px", marginTop: "4px", color: "#9e7500" }}>
+                    You can still submit if this image is correct.
+                  </div>
+                </div>
+              )}
 
               {/* Buttons */}
               <div style={{ display: "flex", gap: "12px", marginTop: "8px", flexWrap: "wrap" }}>
