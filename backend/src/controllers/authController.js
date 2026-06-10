@@ -51,7 +51,8 @@ const buildUserResponse = (user) => {
             ...baseResponse,
             state: user.state,
             district: user.district,
-            department: user.department
+            department: user.department,
+            approvalStatus: user.approvalStatus || 'approved'
         };
     }
     if (user.role ==='admin') {
@@ -72,9 +73,8 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
     const commonOptions = {
         httpOnly: true,
         secure: isProduction,
-        sameSite: isProduction ? 'strict' : 'lax',
-        path: '/',
-        domain: isProduction ? process.env.COOKIE_DOMAIN : undefined
+        sameSite: isProduction ? 'none' : 'lax',
+        path: '/'
     };
     
     res.cookie('accessToken', accessToken, {
@@ -89,15 +89,8 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
 };
 
 const clearAuthCookies = (res) => {
-    const isProduction = process.env.NODE_ENV === 'production';
-    
-    const clearOptions = {
-        path: '/',
-        domain: isProduction ? process.env.COOKIE_DOMAIN : undefined
-    };
-    
-    res.clearCookie('accessToken', clearOptions);
-    res.clearCookie('refreshToken', clearOptions);
+    res.clearCookie('accessToken', { path: '/' });
+    res.clearCookie('refreshToken', { path: '/' });
 };
 
 
@@ -153,6 +146,7 @@ export const sendSignupOtp = async (req, res) => {
             userData.state = state;
             userData.district = district;
             userData.department = department;
+            userData.approvalStatus = 'pending';
         }
         if(role==='admin'){
             userData.state = state;
@@ -181,7 +175,7 @@ export const sendSignupOtp = async (req, res) => {
         });
 
     } catch (error) {
-        comsole.error('Error in sendSignupOtp:', error.message);
+        console.error('Error in sendSignupOtp:', error.message);
         return res.status(500).json({
             success: false,
             message: 'Something went wrong. Please try again later.'
@@ -235,6 +229,18 @@ export const verifySignupOtp = async (req, res) => {
         user.isAccountVerified = true;
         user.verifyOtp = '';
         user.verifyOtpExpireAt = 0;
+
+        if (user.role === 'staff') {
+            await user.save();
+            clearAuthCookies(res);
+
+            return res.json({
+                success: true,
+                requiresApproval: true,
+                message: 'Your staff registration request has been submitted. You can log in after your district admin approves it.',
+                user: buildUserResponse(user)
+            });
+        }
 
         const accessToken = generateAccessToken(user._id, user.role);
         const refreshToken = generateRefreshToken(user._id, user.role);
@@ -362,6 +368,17 @@ export const sendLoginOtp = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'This account uses Google Sign-In. Please continue with Google or reset your password.'
+            });
+        }
+
+        if (user.role === 'staff' && (user.approvalStatus || 'approved') !== 'approved') {
+            const message = user.approvalStatus === 'rejected'
+                ? 'Your staff registration request was rejected. Please contact your district administrator.'
+                : 'Your staff registration request is pending administrator approval.';
+            return res.status(403).json({
+                success: false,
+                message,
+                approvalStatus: user.approvalStatus || 'pending'
             });
         }
 
@@ -513,6 +530,14 @@ export const verifyLoginOtp = async (req, res) => {
             });
         }
 
+        if (user.role === 'staff' && (user.approvalStatus || 'approved') !== 'approved') {
+            return res.status(403).json({
+                success: false,
+                message: 'Your staff account is not approved for login.',
+                approvalStatus: user.approvalStatus || 'pending'
+            });
+        }
+
         if (!user.verifyOtp || user.verifyOtpExpireAt < Date.now()) {
             return res.status(400).json({
                 success: false,
@@ -596,6 +621,14 @@ export const resendLoginOtp = async (req, res) => {
             });
         }
 
+        if (user.role === 'staff' && (user.approvalStatus || 'approved') !== 'approved') {
+            return res.status(403).json({
+                success: false,
+                message: 'Your staff account is not approved for login.',
+                approvalStatus: user.approvalStatus || 'pending'
+            });
+        }
+
         if (user.verifyOtpExpireAt && user.verifyOtpExpireAt > Date.now() + 9 * 60 * 1000) {
             return res.status(429).json({
                 success: false,
@@ -676,6 +709,16 @@ export const refreshAccessToken = async (req, res) => {
             return res.status(403).json({
                 success: false,
                 message: 'Invalid refresh token'
+            });
+        }
+
+        if (user.role === 'staff' && (user.approvalStatus || 'approved') !== 'approved') {
+            user.refreshToken = null;
+            await user.save();
+            clearAuthCookies(res);
+            return res.status(403).json({
+                success: false,
+                message: 'Your staff account is not approved for access.'
             });
         }
 

@@ -42,6 +42,14 @@ export const staffAuth = async (req, res, next) => {
                 needsVerification: true
             });
         }
+
+        if ((user.approvalStatus || 'approved') !== 'approved') {
+            return res.status(403).json({
+                success: false,
+                message: 'Your staff registration must be approved before you can access the staff portal.',
+                approvalStatus: user.approvalStatus || 'pending'
+            });
+        }
         
         req.userId = decoded.id;
         req.userRole = decoded.role;

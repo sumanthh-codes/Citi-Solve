@@ -10,6 +10,7 @@ import {
   assignComplaintToStaff,
   getAllStaff,
   getStaffById,
+  updateStaffApproval,
   getAllDepartments,
   getAllUsers,
   getUserById,
@@ -55,6 +56,7 @@ adminRouter.get('/complaints/:id/available-staff', validateObjectId, getAvailabl
 adminRouter.post('/complaints/:id/assign', validateObjectId, assignComplaintToStaff);
 adminRouter.get('/staff', preventQueryId, getAllStaff);
 adminRouter.get('/staff/:id', validateObjectId, getStaffById);
+adminRouter.put('/staff/:id/approval', validateObjectId, updateStaffApproval);
 adminRouter.get('/departments',getAllDepartments);
 adminRouter.get('/users', preventQueryId,getAllUsers);
 adminRouter.get('/users/:id', validateObjectId, getUserById);
