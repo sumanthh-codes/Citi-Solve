@@ -16,8 +16,10 @@ const CitiSolveLanding = () => {
   googleLoginUser,
   loading,
   error,
+  message,
   otpSent,
   setError,
+  setMessage,
   } = useAuth();
 
 
@@ -79,11 +81,12 @@ const CitiSolveLanding = () => {
   // Reset error when switching auth mode
   useEffect(() => {
     setError('');
+    setMessage('');
     setdetail("citizen");
     setLocationState("");
     setLocationDistrict("");
     setLocationFetched(false);
-  }, [authMode, setError]);
+  }, [authMode, setError, setMessage]);
 
   // Fetch location using Geolocation API and reverse geocoding
   const fetchLocation = async () => {
@@ -331,6 +334,7 @@ const CitiSolveLanding = () => {
                 e.preventDefault();
                 setdetail("citizen");
                 setError('');
+                setMessage('');
                 setLocationState("");
                 setLocationDistrict("");
                 setLocationFetched(false);
@@ -342,6 +346,7 @@ const CitiSolveLanding = () => {
                 e.preventDefault();
                 setdetail("staff");
                 setError('');
+                setMessage('');
                 setLocationState("");
                 setLocationDistrict("");
                 setLocationFetched(false);
@@ -354,6 +359,7 @@ const CitiSolveLanding = () => {
                   e.preventDefault();
                   setdetail("admin");
                   setError('');
+                  setMessage('');
                 }}>
                   <img src="/admin.png" className={styles.profilesimg} alt="admin" />
                   admin
@@ -508,6 +514,11 @@ const CitiSolveLanding = () => {
               {error && (
                 <div style={errorMessageStyles}>
                   {error}
+                </div>
+              )}
+              {message && (
+                <div style={{ ...errorMessageStyles, color: '#166534', backgroundColor: '#dcfce7' }}>
+                  {message}
                 </div>
               )}
               {otpSent && (

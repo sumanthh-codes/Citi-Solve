@@ -8,6 +8,7 @@ export const useAuth = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [otpSent, setOtpSent] = useState(false);
 
   const [pendingUserId, setPendingUserId] = useState(null);
@@ -19,6 +20,7 @@ export const useAuth = () => {
   const signupUser = async (payload) => {
     setLoading(true);
     setError('');
+    setMessage('');
     setAuthMode('signup');
 
     try {
@@ -53,6 +55,7 @@ export const useAuth = () => {
   const loginUser = async (payload) => {
     setLoading(true);
     setError('');
+    setMessage('');
     setAuthMode('login');
 
     try {
@@ -87,6 +90,7 @@ export const useAuth = () => {
   const verifyOtp = async (otp) => {
     setLoading(true);
     setError('');
+    setMessage('');
     if (!pendingUserId) {
     setError("OTP session expired. Please login again.");
     return false;
@@ -117,6 +121,14 @@ export const useAuth = () => {
         return false;
       }
 
+      if (data.requiresApproval) {
+        setOtpSent(false);
+        setPendingUserId(null);
+        setMessage(data.message);
+        navigate('/');
+        return true;
+      }
+
       // Backend returns role in user object
       const role = data.user?.role;
       if (role) {
@@ -140,6 +152,7 @@ export const useAuth = () => {
   const resendOTP = async () => {
     setLoading(true);
     setError('');
+    setMessage('');
 
     const endpoint =
       authMode === 'signup'
@@ -287,7 +300,9 @@ export const useAuth = () => {
     googleLoginUser,
     loading,
     error,
+    message,
     otpSent,
     setError,
+    setMessage,
   };
 };
