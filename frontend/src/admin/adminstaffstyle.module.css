@@ -254,6 +254,64 @@
   color: #dc2626;
 }
 
+.reviewBtn {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 6px;
+  padding: 7px 10px;
+}
+
+.reviewBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.approve {
+  background: #065f46;
+  color: #d1fae5;
+}
+
+.reject {
+  background: #7f1d1d;
+  color: #fee2e2;
+}
+
+.statusBadge {
+  border-radius: 999px;
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+  text-transform: capitalize;
+}
+
+.pending {
+  background: #78350f;
+  color: #fde68a;
+}
+
+.approved {
+  background: #064e3b;
+  color: #a7f3d0;
+}
+
+.rejected {
+  background: #7f1d1d;
+  color: #fecaca;
+}
+
+.actionMessage {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #e2e8f0;
+  margin: 0 0 18px;
+  padding: 12px 16px;
+}
+
 /* ==================== LOADING & NO DATA ==================== */
 .loadingCell,
 .noDataCell {

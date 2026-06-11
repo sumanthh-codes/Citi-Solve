@@ -8,6 +8,7 @@ const StaffPage = () => {
     loading: hookLoading,
     fetchStaff,
     fetchStaffById,
+    updateStaffApproval,
   } = useAdminStaff();
 
   const [staffData, setStaffData] = useState([]);
@@ -16,6 +17,8 @@ const StaffPage = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [pageLoading, setPageLoading] = useState(false);
+  const [actionMessage, setActionMessage] = useState('');
+  const [reviewingId, setReviewingId] = useState(null);
 
   /* =========================
      FETCH STAFF (WITH DEBOUNCE)
@@ -59,6 +62,23 @@ const StaffPage = () => {
     const freshStaff = await fetchStaffById(staff._id);
     setSelectedStaff(freshStaff || staff);
     setShowDetailModal(true);
+  };
+
+  const handleApproval = async (staff, status) => {
+    setReviewingId(staff._id);
+    setActionMessage('');
+    const result = await updateStaffApproval(staff._id, status);
+
+    if (result.success) {
+      setStaffData((current) => current.map((member) => (
+        member._id === staff._id
+          ? { ...member, approvalStatus: status, approvalReviewedAt: result.staff.approvalReviewedAt }
+          : member
+      )));
+    }
+
+    setActionMessage(result.message || 'Unable to review this staff request.');
+    setReviewingId(null);
   };
 
   /* =========================
@@ -130,7 +150,7 @@ const StaffPage = () => {
     if (pageLoading || hookLoading) {
       return (
         <tr>
-          <td colSpan="7" className={styles.loadingCell}>
+          <td colSpan="9" className={styles.loadingCell}>
             <div className={styles.spinner}></div>
             <p>Loading staff members...</p>
           </td>
@@ -141,7 +161,7 @@ const StaffPage = () => {
     if (staffData.length === 0) {
       return (
         <tr>
-          <td colSpan="7" className={styles.noDataCell}>
+          <td colSpan="9" className={styles.noDataCell}>
             No staff members found
           </td>
         </tr>
@@ -171,6 +191,11 @@ const StaffPage = () => {
         <td data-label="Resolved">
           {staff.workload?.resolved || 0}
         </td>
+        <td data-label="Status">
+          <span className={`${styles.statusBadge} ${styles[staff.approvalStatus || 'approved']}`}>
+            {staff.approvalStatus || 'approved'}
+          </span>
+        </td>
         <td data-label="Actions" className={styles.actionCell}>
           <button 
             className={`${styles.actionBtn} ${styles.view}`} 
@@ -179,6 +204,24 @@ const StaffPage = () => {
           >
             👁️
           </button>
+          {(staff.approvalStatus || 'approved') !== 'approved' && (
+            <button
+              className={`${styles.reviewBtn} ${styles.approve}`}
+              disabled={reviewingId === staff._id || !staff.isAccountVerified}
+              onClick={() => handleApproval(staff, 'approved')}
+            >
+              Approve
+            </button>
+          )}
+          {(staff.approvalStatus || 'approved') !== 'rejected' && (
+            <button
+              className={`${styles.reviewBtn} ${styles.reject}`}
+              disabled={reviewingId === staff._id || !staff.isAccountVerified}
+              onClick={() => handleApproval(staff, 'rejected')}
+            >
+              Reject
+            </button>
+          )}
         </td>
       </tr>
     ));
@@ -210,6 +253,7 @@ const StaffPage = () => {
           </button>
         </div>
       </div>
+      {actionMessage && <p className={styles.actionMessage}>{actionMessage}</p>}
 
       <div className={styles.filterSection}>
         <div className={styles.filterGroup}>
@@ -250,6 +294,7 @@ const StaffPage = () => {
               <th>District</th>
               <th>Active Cases</th>
               <th>Resolved</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -288,6 +333,12 @@ const StaffPage = () => {
                 <div className={styles.detailItem}>
                   <strong>Location:</strong>
                   <span>{selectedStaff.district}, {selectedStaff.state}</span>
+                </div>
+                <div className={styles.detailItem}>
+                  <strong>Approval Status:</strong>
+                  <span className={`${styles.statusBadge} ${styles[selectedStaff.approvalStatus || 'approved']}`}>
+                    {selectedStaff.approvalStatus || 'approved'}
+                  </span>
                 </div>
                 <div className={styles.detailItem}>
                   <strong>Total Assigned:</strong>
