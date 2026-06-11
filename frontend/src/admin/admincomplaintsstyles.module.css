@@ -3,7 +3,7 @@
   padding: 30px;
   flex: 1;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow: visible;
 }
 
 .pageHeader {
@@ -283,6 +283,25 @@
   color: #dc2626;
 }
 
+.allocateBtn {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  color: #fbbf24;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  margin-left: 6px;
+  padding: 9px 13px;
+  transition: all 0.2s ease;
+}
+
+.allocateBtn:hover:not(:disabled) {
+  background: #2a2a2a;
+  border-color: #f59e0b;
+  color: #fcd34d;
+}
+
 /* ==================== LOADING & NO DATA ==================== */
 .loadingCell,
 .noDataCell {
@@ -509,6 +528,15 @@
   gap: 16px;
 }
 
+.allocationFormRow {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.staffSelect {
+  min-width: 100%;
+  width: 100%;
+}
+
 .modalActions {
   display: flex;
   justify-content: flex-end;
@@ -687,7 +715,10 @@
   }
 
   .actionCell {
+    align-items: flex-end;
+    flex-direction: column;
     justify-content: flex-end;
+    gap: 8px;
   }
 
   .actionBtn {
@@ -717,6 +748,15 @@
 
   .formRow {
     grid-template-columns: 1fr;
+  }
+
+  .allocationFormRow {
+    grid-template-columns: 1fr;
+  }
+
+  .allocateBtn {
+    margin-left: 0;
+    width: 120px;
   }
 
   .modalActions {
