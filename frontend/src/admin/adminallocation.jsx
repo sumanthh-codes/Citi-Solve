@@ -163,7 +163,7 @@ const AllocationPage = () => {
     const staff = await fetchAvailableStaff(complaint._id);
     
     if (!staff || staff.length === 0) {
-      alert(`No staff members available for ${complaint.category} department in ${complaint.district}`);
+      alert(`No approved staff members are available for ${complaint.category} in ${complaint.district}. Approve a matching staff member first in Staff Management.`);
       return;
     }
 
@@ -312,7 +312,7 @@ const AllocationPage = () => {
             👁️
           </button>
           <button
-            className={`${styles.actionBtn} ${styles.edit}`}
+            className={styles.allocateBtn}
             title="Allocate"
             onClick={() => handleAllocateClick(c)}
           >
@@ -506,14 +506,14 @@ const AllocationPage = () => {
                 <strong>District:</strong> {selectedComplaint.district}
               </p>
 
-              <div className={styles.formRow}>
+              <div className={`${styles.formRow} ${styles.allocationFormRow}`}>
                 <div className={styles.formGroup}>
                   <label htmlFor="staffSelect">
                     Select Staff Member ({availableStaff.length} available)
                   </label>
                   <select
                     id="staffSelect"
-                    className={styles.filterSelect}
+                    className={`${styles.filterSelect} ${styles.staffSelect}`}
                     value={selectedStaffId}
                     onChange={(e) => setSelectedStaffId(e.target.value)}
                     disabled={isAllocating}
