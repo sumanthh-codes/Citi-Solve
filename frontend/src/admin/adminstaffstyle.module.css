@@ -3,7 +3,7 @@
   padding: 30px;
   flex: 1;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow: visible;
 }
 
 .pageHeader {
@@ -312,6 +312,81 @@
   padding: 12px 16px;
 }
 
+.pendingPanel {
+  background: linear-gradient(135deg, #1a1a1a 0%, #141414 100%);
+  border: 1px solid #2a2a2a;
+  border-radius: 14px;
+  margin-bottom: 24px;
+  padding: 22px;
+}
+
+.pendingHeader {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.pendingHeader h3 {
+  color: #fff;
+  font-size: 20px;
+  margin: 0 0 6px;
+}
+
+.pendingHeader p,
+.emptyPending,
+.requestCard p {
+  color: #9ca3af;
+  font-size: 13px;
+  margin: 0;
+}
+
+.pendingCount {
+  align-items: center;
+  background: #78350f;
+  border: 1px solid #92400e;
+  border-radius: 999px;
+  color: #fde68a;
+  display: flex;
+  font-size: 18px;
+  font-weight: 800;
+  height: 42px;
+  justify-content: center;
+  min-width: 42px;
+  padding: 0 12px;
+}
+
+.requestGrid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.requestCard {
+  align-items: center;
+  background: #111827;
+  border: 1px solid #273244;
+  border-radius: 12px;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.requestCard h4 {
+  color: #fff;
+  font-size: 16px;
+  margin: 0 0 6px;
+}
+
+.requestActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 /* ==================== LOADING & NO DATA ==================== */
 .loadingCell,
 .noDataCell {
@@ -572,12 +647,31 @@
   }
 
   .actionCell {
+    align-items: flex-end;
+    flex-direction: column;
     justify-content: flex-end;
+    gap: 8px;
   }
 
   .actionBtn {
     padding: 8px 12px;
     font-size: 18px;
+  }
+
+  .reviewBtn {
+    margin-left: 0;
+    width: 120px;
+  }
+
+  .pendingHeader,
+  .requestCard {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .requestActions {
+    justify-content: flex-start;
+    width: 100%;
   }
 
   /* Modal adjustments */

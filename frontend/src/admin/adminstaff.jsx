@@ -19,6 +19,7 @@ const StaffPage = () => {
   const [pageLoading, setPageLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState('');
   const [reviewingId, setReviewingId] = useState(null);
+  const pendingStaff = staffData.filter((staff) => (staff.approvalStatus || 'approved') === 'pending');
 
   /* =========================
      FETCH STAFF (WITH DEBOUNCE)
@@ -254,6 +255,50 @@ const StaffPage = () => {
         </div>
       </div>
       {actionMessage && <p className={styles.actionMessage}>{actionMessage}</p>}
+
+      <section className={styles.pendingPanel}>
+        <div className={styles.pendingHeader}>
+          <div>
+            <h3>Pending Staff Requests</h3>
+            <p>Approve staff here before they can log in or receive complaint allocations.</p>
+          </div>
+          <span className={styles.pendingCount}>{pendingStaff.length}</span>
+        </div>
+
+        {pendingStaff.length === 0 ? (
+          <p className={styles.emptyPending}>No pending staff requests in your district.</p>
+        ) : (
+          <div className={styles.requestGrid}>
+            {pendingStaff.map((staff) => (
+              <div className={styles.requestCard} key={staff._id}>
+                <div>
+                  <h4>{staff.name}</h4>
+                  <p>{staff.email}</p>
+                  <p>
+                    <strong>{staff.department}</strong> department, {staff.district}
+                  </p>
+                </div>
+                <div className={styles.requestActions}>
+                  <button
+                    className={`${styles.reviewBtn} ${styles.approve}`}
+                    disabled={reviewingId === staff._id}
+                    onClick={() => handleApproval(staff, 'approved')}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    className={`${styles.reviewBtn} ${styles.reject}`}
+                    disabled={reviewingId === staff._id}
+                    onClick={() => handleApproval(staff, 'rejected')}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <div className={styles.filterSection}>
         <div className={styles.filterGroup}>
