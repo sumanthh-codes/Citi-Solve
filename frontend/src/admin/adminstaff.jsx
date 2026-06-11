@@ -177,14 +177,8 @@ const StaffPage = () => {
         <td data-label="Name" className={styles.truncatedText} title={staff.name}>
           {staff.name}
         </td>
-        <td data-label="Email" className={styles.truncatedText} title={staff.email}>
-          {staff.email}
-        </td>
         <td data-label="Department">
           {staff.department.charAt(0).toUpperCase() + staff.department.slice(1)}
-        </td>
-        <td data-label="District">
-          {staff.district}
         </td>
         <td data-label="Active Cases">
           {staff.workload?.active || 0}
@@ -334,9 +328,7 @@ const StaffPage = () => {
             <tr>
               <th>ID</th>
               <th>Name</th>
-              <th>Email</th>
               <th>Department</th>
-              <th>District</th>
               <th>Active Cases</th>
               <th>Resolved</th>
               <th>Status</th>

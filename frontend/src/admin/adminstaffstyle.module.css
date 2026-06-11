@@ -156,7 +156,7 @@
 .dataTable {
   width: 100%;
   border-collapse: collapse;
-  min-width: 900px;
+  min-width: 500px;
 }
 
 .dataTable thead {
@@ -202,9 +202,14 @@
   white-space: nowrap;
 }
 
-/* ==================== ACTION BUTTONS ==================== */
+/* ==================== ACTION BUTTONS ====================  */
 .actionCell {
-  white-space: nowrap;
+  white-space: normal;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  min-width: 140px;
 }
 
 .actionBtn {
