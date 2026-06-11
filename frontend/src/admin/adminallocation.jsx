@@ -283,14 +283,8 @@ const AllocationPage = () => {
 
     return filteredComplaints.map((c) => (
       <tr key={c._id}>
-        <td data-label="ID">
-          <strong>{c._id.slice(-6)}</strong>
-        </td>
         <td data-label="Citizen" className={styles.truncatedText} title={c.citizen?.name}>
           {c.citizen?.name || 'N/A'}
-        </td>
-        <td data-label="Email" className={styles.truncatedText} title={c.citizen?.email}>
-          {c.citizen?.email || 'N/A'}
         </td>
         <td data-label="Title" className={styles.truncatedText} title={c.title}>
           {c.title}
@@ -398,9 +392,7 @@ const AllocationPage = () => {
         <table className={styles.dataTable}>
           <thead>
             <tr>
-              <th>ID</th>
               <th>Citizen</th>
-              <th>Email</th>
               <th>Title</th>
               <th>Category</th>
               <th>Location</th>
