@@ -52,6 +52,23 @@ const userSchema = new mongoose.Schema({
     required: function() { return this.role === 'staff'; }
   },
 
+  approvalStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'approved'
+  },
+
+  approvalReviewedAt: {
+    type: Date,
+    default: null
+  },
+
+  approvalReviewedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'user',
+    default: null
+  },
+
   verifyOtp: { 
     type: String, 
     default: "" 

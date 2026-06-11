@@ -3,6 +3,16 @@
 import mongoose from 'mongoose';
 import complaintModel from '../models/complaintModel.js';
 import userModel from '../models/usermodel.js';
+import transporter from '../config/nodemailer.js';
+
+const approvedStaffFilter = { $nin: ['pending', 'rejected'] };
+
+const escapeHtml = (value) => String(value || '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
 
 
 export const getAdminDashboard = async (req, res) => {
@@ -25,8 +35,8 @@ export const getAdminDashboard = async (req, res) => {
       complaintModel.countDocuments({ state, district, status: 'in-progress' }),
       complaintModel.countDocuments({ state, district, status: 'resolved' }),
       complaintModel.countDocuments({ state, district, status: 'rejected' }),
-      userModel.countDocuments({ role: 'staff', state, district }),
-      userModel.distinct('department', { role: 'staff', state, district }).then(arr => arr.length)
+      userModel.countDocuments({ role: 'staff', state, district, approvalStatus: approvedStaffFilter }),
+      userModel.distinct('department', { role: 'staff', state, district, approvalStatus: approvedStaffFilter }).then(arr => arr.length)
     ]);
 
     res.json({
@@ -89,6 +99,7 @@ export const getDepartmentWorkload = async (req, res) => {
                 $expr: { 
                   $and: [
                     { $eq: ['$role', 'staff'] },
+                    { $not: [{ $in: ['$approvalStatus', ['pending', 'rejected']] }] },
                     { $eq: ['$state', '$$districtState'] },
                     { $eq: ['$district', '$$districtName'] },
                     { $eq: ['$department', '$$dept'] }
@@ -253,7 +264,8 @@ export const getAvailableStaffForComplaint = async (req, res) => {
         state: state, 
         district: district, 
         department: complaint.category,
-        isAccountVerified: true
+        isAccountVerified: true,
+        approvalStatus: approvedStaffFilter
       })
       .select('name email state district department')
       .lean();
@@ -335,7 +347,8 @@ export const assignComplaintToStaff = async (req, res) => {
     const staff = await userModel.findOne({
       _id: staffId,
       role: 'staff',
-      isAccountVerified: true
+      isAccountVerified: true,
+      approvalStatus: approvedStaffFilter
     });
 
     if (!staff) {
@@ -389,7 +402,7 @@ export const getAllStaff = async (req, res) => {
       page = 1,
       limit = 10
     } = req.query;
-    const query = { role: 'staff', state, district };
+    const query = { role: 'staff', state, district, isAccountVerified: true };
     if (department !== 'all') query.department = department;
 
     if (search && search.trim()) {
@@ -459,7 +472,7 @@ export const getStaffById = async (req, res) => {
     const { id } = req.params;
 
     const staff = await userModel
-      .findOne({ _id: id, role: 'staff', state, district }) 
+      .findOne({ _id: id, role: 'staff', state, district, isAccountVerified: true })
       .select('-password -verifyOtp -resetOtp -refreshToken')
       .lean();
 
@@ -487,6 +500,88 @@ export const getStaffById = async (req, res) => {
   } catch (error) {
     console.error('Get staff error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
+  }
+};
+
+export const updateStaffApproval = async (req, res) => {
+  try {
+    const { state, district } = req.user;
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status must be approved or rejected'
+      });
+    }
+
+    const staff = await userModel.findOne({
+      _id: id,
+      role: 'staff',
+      state,
+      district
+    });
+
+    if (!staff) {
+      return res.status(404).json({
+        success: false,
+        message: 'Staff request not found in your district'
+      });
+    }
+
+    if (!staff.isAccountVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'The staff member must verify their email before the request can be reviewed'
+      });
+    }
+
+    staff.approvalStatus = status;
+    staff.approvalReviewedAt = new Date();
+    staff.approvalReviewedBy = req.userId;
+    staff.refreshToken = null;
+    await staff.save();
+
+    let emailSent = true;
+    try {
+      const approved = status === 'approved';
+      await transporter.sendMail({
+        from: process.env.SENDER_EMAIL,
+        to: staff.email,
+        subject: approved ? 'CitiSolve staff request approved' : 'CitiSolve staff request update',
+        html: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">
+            <h2>Hi ${escapeHtml(staff.name)},</h2>
+            <p>Your CitiSolve staff registration request for <strong>${escapeHtml(staff.department)}</strong> in <strong>${escapeHtml(staff.district)}, ${escapeHtml(staff.state)}</strong> has been <strong>${status}</strong>.</p>
+            <p>${approved
+              ? 'You may now log in to access your staff portal.'
+              : 'You cannot access the staff portal. Please contact your district administrator if you need more information.'}</p>
+            <p>CitiSolve Administration</p>
+          </div>
+        `
+      });
+    } catch (emailError) {
+      emailSent = false;
+      console.error('Staff approval email error:', emailError.message);
+    }
+
+    return res.json({
+      success: true,
+      message: `Staff request ${status}${emailSent ? ' and notification email sent' : ', but the notification email could not be sent'}.`,
+      emailSent,
+      staff: {
+        id: staff._id,
+        approvalStatus: staff.approvalStatus,
+        approvalReviewedAt: staff.approvalReviewedAt
+      }
+    });
+  } catch (error) {
+    console.error('Update staff approval error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Something went wrong. Please try again later.'
+    });
   }
 };
 
@@ -611,7 +706,7 @@ export const getAllDepartments = async (req, res) => {
       departments.map(async (dept) => {
         const [total, staff, pending, assigned, inProgress, resolved, rejected] = await Promise.all([
           complaintModel.countDocuments({ state, district, category: dept }),
-          userModel.countDocuments({ role: 'staff', state, district, department: dept }),
+          userModel.countDocuments({ role: 'staff', state, district, department: dept, approvalStatus: approvedStaffFilter }),
           complaintModel.countDocuments({ state, district, category: dept, status: 'pending' }),
           complaintModel.countDocuments({ state, district, category: dept, status: 'assigned' }),
           complaintModel.countDocuments({ state, district, category: dept, status: 'in-progress' }),

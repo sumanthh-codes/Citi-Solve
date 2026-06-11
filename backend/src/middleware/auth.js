@@ -26,6 +26,13 @@ export const verifyToken = async (req, res, next) => {
                 message: 'User not found. Please login again'
             });
         }
+
+        if (user.role === 'staff' && (user.approvalStatus || 'approved') !== 'approved') {
+            return res.status(403).json({
+                success: false,
+                message: 'Your staff account is not approved for access.'
+            });
+        }
         
         req.userId = decoded.id;
         req.userRole = decoded.role;
@@ -82,6 +89,13 @@ export const verifyTokenAndAccount = async (req, res, next) => {
                 success: false,
                 message: 'Please verify your email first',
                 needsVerification: true
+            });
+        }
+
+        if (user.role === 'staff' && (user.approvalStatus || 'approved') !== 'approved') {
+            return res.status(403).json({
+                success: false,
+                message: 'Your staff account is not approved for access.'
             });
         }
         
