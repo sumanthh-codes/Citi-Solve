@@ -78,10 +78,37 @@ export const useAdminStaff = () => {
     }
   };
 
+  const updateStaffApproval = async (id, status) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`${API}/api/admin/staff/${id}/approval`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to update staff request");
+      }
+
+      return data;
+    } catch (err) {
+      setError(err.message);
+      return { success: false, message: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     error,
     fetchStaff,
     fetchStaffById,
+    updateStaffApproval,
   };
 };
