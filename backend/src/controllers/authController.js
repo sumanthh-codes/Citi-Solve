@@ -338,7 +338,7 @@ export const resendSignupOtp = async (req, res) => {
 
 export const sendLoginOtp = async (req, res) => {
     const { email, password, role } = req.body;
-
+    console.log('Login attempt:', { email, role });
     if (!email || !password || !role) {
         return res.status(400).json({
             success: false,
@@ -348,6 +348,7 @@ export const sendLoginOtp = async (req, res) => {
 
     try {
         const user = await userModel.findOne({ email });
+        console.log('User found for login:', user ? { id: user._id, role: user.role } : null);
 
         if (!user || user.role !== role) {
             return res.status(401).json({

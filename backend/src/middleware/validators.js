@@ -3,7 +3,7 @@ import { body, validationResult } from 'express-validator';
 export const validateLogin = [
     body('email')
         .isEmail()
-        .normalizeEmail()
+        .normalizeEmail({ gmail_remove_subaddress: false })
         .withMessage('Invalid email format'),
     body('password')
         .isLength({ min: 5 })
@@ -30,7 +30,7 @@ export const validateSignup = [
         .withMessage('Name must be between 2-50 characters'),
     body('email')
         .isEmail()
-        .normalizeEmail()
+        .normalizeEmail({ gmail_remove_subaddress: false })
         .withMessage('Invalid email'),
     body('password')
         .isLength({ min: 5 })
