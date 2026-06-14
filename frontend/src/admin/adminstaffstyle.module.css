@@ -204,12 +204,10 @@
 
 /* ==================== ACTION BUTTONS ====================  */
 .actionCell {
-  white-space: normal;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
-  min-width: 140px;
+  white-space: nowrap;
+  vertical-align: middle;
+  text-align: left;
+  padding: 12px 16px;
 }
 
 .actionBtn {
