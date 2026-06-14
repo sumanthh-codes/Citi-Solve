@@ -343,20 +343,23 @@ const Complaint = () => {
                   Submitted on: {selectedComplaint.createdAt ? new Date(selectedComplaint.createdAt).toLocaleDateString() : "N/A"}
                 </div>
                 <div className={styles.complaintdate}>
-                  Assigned to : {selectedComplaint.AssignedTo ? `${selectedComplaint.AssignedTo}` : "N/A"}
+                  Assigned to: <strong>{selectedComplaint.assignedTo?.name || "Not yet assigned"}</strong>
                 </div>
-                <div className={styles.complaintdate}>
-                 Assigned By : {selectedComplaint.AssignedBy ? `${selectedComplaint.AssignedBy}` : "N/A"}
-                </div>
-                <div className={styles.complaintdate}>
-                 Assigned At : {selectedComplaint.AssignedAt ? `${new Date(selectedComplaint.AssignedAt).toLocaleDateString()}` : "N/A"}
-                </div>
-                <div className={styles.complaintdate}>
-                 Resolved at : {selectedComplaint.ResolvedAt ? `${new Date(selectedComplaint.ResolvedAt).toLocaleDateString()}` : "N/A"}
-                </div>
-                <div className={styles.complaintdate}>
-                  Resolved by : {selectedComplaint.ResolvedBy ? `${selectedComplaint.ResolvedBy}` : "N/A"}
-                </div>
+                {selectedComplaint.assignedTo && (
+                  <>
+                    <div className={styles.complaintdate}>
+                      Assigned by: {selectedComplaint.assignedBy?.name || "Admin"}
+                    </div>
+                    <div className={styles.complaintdate}>
+                      Assigned at: {selectedComplaint.assignedAt ? new Date(selectedComplaint.assignedAt).toLocaleDateString() : "N/A"}
+                    </div>
+                  </>
+                )}
+                {selectedComplaint.resolvedAt && (
+                  <div className={styles.complaintdate}>
+                    Resolved at: {new Date(selectedComplaint.resolvedAt).toLocaleDateString()}
+                  </div>
+                )}
               </div>
             </div>
           </div>
