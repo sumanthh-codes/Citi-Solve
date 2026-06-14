@@ -60,9 +60,15 @@ const StaffPage = () => {
      DETAIL MODAL
   ========================= */
   const handleViewDetails = async (staff) => {
-    const freshStaff = await fetchStaffById(staff._id);
-    setSelectedStaff(freshStaff || staff);
+    // Use the cached staff data from list (already has workload)
+    setSelectedStaff(staff);
     setShowDetailModal(true);
+    // Also fetch fresh data in background for recent complaints
+    const freshStaff = await fetchStaffById(staff._id);
+    if (freshStaff) {
+      // Merge: keep workload from list, get recentComplaints from fresh fetch
+      setSelectedStaff({ ...staff, recentComplaints: freshStaff.recentComplaints });
+    }
   };
 
   const handleApproval = async (staff, status) => {
@@ -201,26 +207,29 @@ const StaffPage = () => {
           </button>
         </td>
         <td data-label="Approval" className={styles.actionCell}>
-          {(staff.approvalStatus || 'approved') !== 'approved' && (
-            <button
-              className={`${styles.reviewBtn} ${styles.approve}`}
-              disabled={reviewingId === staff._id || !staff.isAccountVerified}
-              onClick={() => handleApproval(staff, 'approved')}
-            >
-              Approve
-            </button>
+          {staff.approvalStatus === 'pending' && (
+            <>
+              <button
+                className={`${styles.reviewBtn} ${styles.approve}`}
+                disabled={reviewingId === staff._id || !staff.isAccountVerified}
+                onClick={() => handleApproval(staff, 'approved')}
+              >
+                Approve
+              </button>
+              <button
+                className={`${styles.reviewBtn} ${styles.reject}`}
+                disabled={reviewingId === staff._id || !staff.isAccountVerified}
+                onClick={() => handleApproval(staff, 'rejected')}
+              >
+                Reject
+              </button>
+            </>
           )}
-          {(staff.approvalStatus || 'approved') !== 'rejected' && (
-            <button
-              className={`${styles.reviewBtn} ${styles.reject}`}
-              disabled={reviewingId === staff._id || !staff.isAccountVerified}
-              onClick={() => handleApproval(staff, 'rejected')}
-            >
-              Reject
-            </button>
+          {(staff.approvalStatus === 'approved' || !staff.approvalStatus) && (
+            <span style={{ color: '#34d399', fontSize: '13px', fontWeight: 700 }}>✓ Approved</span>
           )}
-          {staff.approvalStatus === 'approved' && (
-            <span style={{ color: '#34d399', fontSize: '12px', fontWeight: 600 }}>✓ Approved</span>
+          {staff.approvalStatus === 'rejected' && (
+            <span style={{ color: '#ef4444', fontSize: '13px', fontWeight: 700 }}>✗ Rejected</span>
           )}
         </td>
       </tr>
