@@ -199,6 +199,8 @@ const StaffPage = () => {
           >
             👁️
           </button>
+        </td>
+        <td data-label="Approval" className={styles.actionCell}>
           {(staff.approvalStatus || 'approved') !== 'approved' && (
             <button
               className={`${styles.reviewBtn} ${styles.approve}`}
@@ -216,6 +218,9 @@ const StaffPage = () => {
             >
               Reject
             </button>
+          )}
+          {staff.approvalStatus === 'approved' && (
+            <span style={{ color: '#34d399', fontSize: '12px', fontWeight: 600 }}>✓ Approved</span>
           )}
         </td>
       </tr>
@@ -333,6 +338,7 @@ const StaffPage = () => {
               <th>Resolved</th>
               <th>Status</th>
               <th>Actions</th>
+              <th>Approval</th>
             </tr>
           </thead>
           <tbody>{renderTableBody()}</tbody>
