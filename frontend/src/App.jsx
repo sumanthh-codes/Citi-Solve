@@ -1,4 +1,5 @@
 import { Navigate, Routes, Route, useLocation } from "react-router-dom";
+import { apiFetch } from "./utils/apiFetch.js";
 // Remove the import of ScrollRestoration
 import CitiSolveLanding from "./guest/guest.jsx";
 import CitizenPortal from "./citizenfolder/citizenportal.jsx";
@@ -15,7 +16,6 @@ import SearchStaff from "./staffolder/staffsearch.jsx";
 import { useEffect, useState } from "react";
 import AdminLayout from "./admin/adminportal.jsx";
 
-const API = import.meta.env.VITE_BACKEND_URL;
 
 const ProtectedStaffRoute = ({ children }) => {
   const [access, setAccess] = useState('checking');
@@ -23,9 +23,7 @@ const ProtectedStaffRoute = ({ children }) => {
   useEffect(() => {
     const verifyStaffAccess = async () => {
       try {
-        const response = await fetch(`${API}/api/auth/is-authenticated`, {
-          credentials: 'include',
-        });
+        const response = await apiFetch('/api/auth/is-authenticated');
         const data = await response.json();
 
         if (response.ok && data.success && data.user?.role === 'staff') {
