@@ -3,6 +3,7 @@ import exifr from "exifr";
 import { useNavigate } from "react-router-dom";
 import styles from "./submitcomplaintstyle.module.css";
 import { useSubmitPortal } from "./hooks/submitcomplainthooks.jsx";
+import { apiFetch, clearToken } from "../utils/apiFetch.js";
 
 const SubmitComplaint = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ const SubmitComplaint = () => {
   const [fileName, setFileName] = useState("");
   const [imageError, setImageError] = useState("");
   const [locationWarning, setLocationWarning] = useState("");
-  const [liveGPS, setLiveGPS] = useState(null); // { lat, lng }
+  const [liveGPS, setLiveGPS] = useState(null);
 
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -80,13 +81,11 @@ const SubmitComplaint = () => {
     setLocationLoading(true);
     setLocationError("");
     
-    // Reset location fields before fetching
     setFormData(prev => ({...prev, state: "", district: "", pincode: ""}));
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        // Store live GPS for EXIF comparison later
         setLiveGPS({ lat: latitude, lng: longitude });
         try {
           const res = await fetch(
@@ -120,7 +119,6 @@ const SubmitComplaint = () => {
   // =========================
   // HANDLERS
   // =========================
-  // Haversine distance in km between two GPS coords
   const getDistanceKm = (lat1, lng1, lat2, lng2) => {
     const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -145,7 +143,6 @@ const SubmitComplaint = () => {
       if (el) el.style.backgroundColor = "#81b183ff";
       setImageError("");
 
-      // ---- EXIF GPS Check (soft warning only) ----
       try {
         const gps = await exifr.gps(file);
         if (gps && gps.latitude && gps.longitude && liveGPS) {
@@ -156,9 +153,8 @@ const SubmitComplaint = () => {
             );
           }
         }
-        // If no EXIF GPS found → no check, proceed normally
       } catch (err) {
-        // EXIF read failed silently — no block
+        // EXIF read failed silently
       }
     } else {
       setImage("");
@@ -193,7 +189,6 @@ const SubmitComplaint = () => {
     
     setFormErrors(errors);
 
-    // Strict location check
     if (!formData.state || !formData.district || !formData.pincode) {
       showAlertPopup("Please click the 'Detect Location' button to fill location details.", "error");
       return false;
@@ -212,10 +207,7 @@ const SubmitComplaint = () => {
 
     if (!validateForm()) return;
 
-    const result = await submitComplaint({
-      formData,
-      image
-    });
+    const result = await submitComplaint({ formData, image });
 
     if (!result.success) {
       showAlertPopup(result.error || "Submission failed");
@@ -223,7 +215,9 @@ const SubmitComplaint = () => {
     }
 
     setShowSuccess(true);
-    setSuccessMessage("Complaint submitted successfully!");
+    setSuccessMessage(result.data.warning
+      ? `Complaint submitted successfully. Warning: ${result.data.warning.reason}`
+      : "Complaint submitted successfully!");
     clearForm();
 
     setTimeout(() => {
@@ -256,7 +250,6 @@ const SubmitComplaint = () => {
     setLiveGPS(null);
   };
 
-  // UI Helpers
   const toggleSidebar = () => setSidebarActive(!sidebarActive);
   const closeSidebar = () => setSidebarActive(false);
   const showAlertPopup = (message, type = "error") => {
@@ -270,9 +263,11 @@ const SubmitComplaint = () => {
   
   const handleLogout = async () => {
     try {
-      await fetch(import.meta.env.VITE_BACKEND_URL+'/api/auth/logout', { method: 'POST', credentials: 'include' });
+      await apiFetch('/api/auth/logout', { method: 'POST' });
+      clearToken();
       navigate('/');
     } catch (err) {
+      clearToken();
       navigate('/');
     }
   };
@@ -281,7 +276,7 @@ const SubmitComplaint = () => {
   if (!user) return null;
 
   return (
-    <div className={styles.main}>
+    <div className={styles.main} style={{ overflowX: "hidden", maxWidth: "100vw", boxSizing: "border-box" }}>
       {showSuccess && (
         <div className={styles.deletionmessage} style={{ backgroundColor: '#4caf50' }}>
           {successMessage}
@@ -324,7 +319,7 @@ const SubmitComplaint = () => {
         <a className={styles.navlink} onClick={() => navigate("/citizen/userguide")}>📖 User Guide</a>
       </div>
 
-      <div className={styles.topnav}>
+      <div className={styles.topnav} style={{ maxWidth: "100vw", overflow: "hidden", boxSizing: "border-box" }}>
         <div className={styles.menuicon} onClick={toggleSidebar}>☰</div>
         <div className={styles.breadcrumb}>Submit Complaint</div>
         <div className={styles.profilesymbol} onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}>
@@ -339,15 +334,15 @@ const SubmitComplaint = () => {
         </div>
       </div>
 
-      <div className={styles.content}>
+      <div className={styles.content} style={{ overflowX: "hidden", boxSizing: "border-box", width: "100%", maxWidth: "100%" }}>
         <div className={styles.welcomesection}>
           <h1>📝 Submit a Complaint</h1>
           <p>Help us serve you better by reporting issues in your area</p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "24px", marginBottom: "40px" }}>
-          <div style={{ background: "white", borderRadius: "20px", padding: "clamp(24px, 4vw, 32px)", boxShadow: "0 6px 20px rgba(0,0,0,0.08)" }}>
-            <h2 style={{ fontSize: "clamp(20px, 4vw, 24px)", fontWeight: "600", color: "#283618", marginBottom: "8px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "24px", marginBottom: "40px", boxSizing: "border-box", width: "100%" }}>
+          <div style={{ background: "white", borderRadius: "20px", padding: "clamp(16px, 4vw, 32px)", boxShadow: "0 6px 20px rgba(0,0,0,0.08)", boxSizing: "border-box", width: "100%" }}>
+            <h2 style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: "600", color: "#283618", marginBottom: "8px" }}>
               New Complaint Form
             </h2>
             <p style={{ fontSize: "14px", color: "#606c38", marginBottom: "24px" }}>
@@ -369,7 +364,9 @@ const SubmitComplaint = () => {
                     border: `2px solid ${formErrors.title ? '#ef5350' : '#e0d5b7'}`,
                     borderRadius: "12px",
                     fontSize: "14px",
-                    fontFamily: "'Poppins', sans-serif"
+                    fontFamily: "'Poppins', sans-serif",
+                    boxSizing: "border-box",
+                    width: "100%"
                   }}
                   required
                 />
@@ -391,7 +388,9 @@ const SubmitComplaint = () => {
                     fontSize: "14px",
                     fontFamily: "'Poppins', sans-serif",
                     background: "white",
-                    cursor: "pointer"
+                    cursor: "pointer",
+                    boxSizing: "border-box",
+                    width: "100%"
                   }}
                   required
                 >
@@ -405,12 +404,10 @@ const SubmitComplaint = () => {
                 {formErrors.category && <span style={{ fontSize: "12px", color: "#ef5350" }}>Please select a category</span>}
               </div>
 
-              {/* ======================================================== */}
-              {/* NEW LOCATION SECTION: Button + 3 Read-only Fields       */}
-              {/* ======================================================== */}
+              {/* LOCATION SECTION */}
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                  <label style={{ fontSize: "14px", fontWeight: "600", color: "#283618", marginBottom: "0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+                  <label style={{ fontSize: "14px", fontWeight: "600", color: "#283618" }}>
                     Location Details *
                   </label>
                   
@@ -431,7 +428,8 @@ const SubmitComplaint = () => {
                       display: "flex",
                       alignItems: "center",
                       gap: "6px",
-                      transition: "background 0.2s"
+                      transition: "background 0.2s",
+                      flexShrink: 0
                     }}
                   >
                     {locationLoading ? (
@@ -440,66 +438,78 @@ const SubmitComplaint = () => {
                         Fetching...
                       </>
                     ) : (
-                      <>
-                        📍 Detect Location
-                      </>
+                      <>📍 Detect Location</>
                     )}
                   </button>
                 </div>
 
-                {/* 3 Read-Only Fields Grid */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
-                   <input
-                     type="text"
-                     name="state"
-                     value={formData.state}
-                     placeholder="State"
-                     readOnly
-                     style={{
-                       padding: "10px",
-                       borderRadius: "10px",
-                       border: "1px solid #e0e0e0",
-                       background: "#f5f5f5", 
-                       color: "#666",
-                       fontSize: "13px",
-                       fontFamily: "'Poppins', sans-serif"
-                     }}
-                   />
-                   <input
-                     type="text"
-                     name="district"
-                     value={formData.district}
-                     placeholder="District"
-                     readOnly
-                     style={{
-                       padding: "10px",
-                       borderRadius: "10px",
-                       border: "1px solid #e0e0e0",
-                       background: "#f5f5f5",
-                       color: "#666",
-                       fontSize: "13px",
-                       fontFamily: "'Poppins', sans-serif"
-                     }}
-                   />
-                   <input
-                     type="text"
-                     name="pincode"
-                     value={formData.pincode}
-                     placeholder="Pincode"
-                     readOnly
-                     style={{
-                       padding: "10px",
-                       borderRadius: "10px",
-                       border: "1px solid #e0e0e0",
-                       background: "#f5f5f5",
-                       color: "#666",
-                       fontSize: "13px",
-                       fontFamily: "'Poppins', sans-serif"
-                     }}
-                   />
+                {/* ✅ FIXED: Responsive grid — stacks on mobile, 3 cols on desktop */}
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))",
+                  gap: "10px",
+                  boxSizing: "border-box",
+                  width: "100%"
+                }}>
+                  <input
+                    type="text"
+                    name="state"
+                    value={formData.state}
+                    placeholder="State"
+                    readOnly
+                    style={{
+                      padding: "10px",
+                      borderRadius: "10px",
+                      border: "1px solid #e0e0e0",
+                      background: "#f5f5f5", 
+                      color: "#666",
+                      fontSize: "13px",
+                      fontFamily: "'Poppins', sans-serif",
+                      boxSizing: "border-box",
+                      width: "100%",
+                      minWidth: 0
+                    }}
+                  />
+                  <input
+                    type="text"
+                    name="district"
+                    value={formData.district}
+                    placeholder="District"
+                    readOnly
+                    style={{
+                      padding: "10px",
+                      borderRadius: "10px",
+                      border: "1px solid #e0e0e0",
+                      background: "#f5f5f5",
+                      color: "#666",
+                      fontSize: "13px",
+                      fontFamily: "'Poppins', sans-serif",
+                      boxSizing: "border-box",
+                      width: "100%",
+                      minWidth: 0
+                    }}
+                  />
+                  <input
+                    type="text"
+                    name="pincode"
+                    value={formData.pincode}
+                    placeholder="Pincode"
+                    readOnly
+                    style={{
+                      padding: "10px",
+                      borderRadius: "10px",
+                      border: "1px solid #e0e0e0",
+                      background: "#f5f5f5",
+                      color: "#666",
+                      fontSize: "13px",
+                      fontFamily: "'Poppins', sans-serif",
+                      boxSizing: "border-box",
+                      width: "100%",
+                      minWidth: 0
+                    }}
+                  />
                 </div>
                 
-                {/* Location Error Message */}
                 {locationError && (
                   <span style={{ fontSize: "12px", color: "#ef5350", marginTop: "-4px" }}>
                     ⚠️ {locationError}
@@ -507,7 +517,7 @@ const SubmitComplaint = () => {
                 )}
               </div>
 
-              {/* Landmark (Mandatory) */}
+              {/* Landmark */}
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 <label style={{ fontSize: "14px", fontWeight: "600", color: "#283618" }}>Nearest Landmark *</label>
                 <input
@@ -521,7 +531,9 @@ const SubmitComplaint = () => {
                     border: `2px solid ${formErrors.landmark ? '#ef5350' : '#e0d5b7'}`,
                     borderRadius: "12px",
                     fontSize: "14px",
-                    fontFamily: "'Poppins', sans-serif"
+                    fontFamily: "'Poppins', sans-serif",
+                    boxSizing: "border-box",
+                    width: "100%"
                   }}
                   required
                 />
@@ -544,7 +556,9 @@ const SubmitComplaint = () => {
                     borderRadius: "12px",
                     fontSize: "14px",
                     fontFamily: "'Poppins', sans-serif",
-                    resize: "vertical"
+                    resize: "vertical",
+                    boxSizing: "border-box",
+                    width: "100%"
                   }}
                   required
                 />
@@ -586,7 +600,7 @@ const SubmitComplaint = () => {
                   disabled={apiLoading}
                   style={{
                     flex: "1",
-                    minWidth: "140px",
+                    minWidth: "120px",
                     padding: "12px 24px",
                     background: "linear-gradient(135deg, #e0e0e0, #bdbdbd)",
                     color: "#424242",
@@ -607,7 +621,7 @@ const SubmitComplaint = () => {
                   className={styles.submitbtn}
                   style={{
                     flex: "1",
-                    minWidth: "140px",
+                    minWidth: "120px",
                     padding: "12px 24px",
                     background: (apiLoading || locationLoading) ? "#a9b9c9" : "linear-gradient(135deg, #dda15e, #bc6c25)",
                     color: "white",
