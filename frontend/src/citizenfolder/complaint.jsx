@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./complaintstyle.module.css";
 import { useNavigate } from "react-router-dom";
 import { useMyComplaints } from "./hooks/mycomplaintshooks.jsx";
+import { apiFetch, clearToken } from "../utils/apiFetch.js";
 
 const Complaint = () => {
   const navigate = useNavigate();
@@ -85,14 +86,12 @@ const Complaint = () => {
   };
 
   const handleLogout = async () => {
-    // Ideally this should also be in a hook, but keeping scope minimal
     try {
-      await fetch(import.meta.env.VITE_BACKEND_URL + "/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await apiFetch("/api/auth/logout", { method: "POST" });
+      clearToken();
       navigate("/");
     } catch (err) {
+      clearToken();
       navigate("/");
     }
   };
