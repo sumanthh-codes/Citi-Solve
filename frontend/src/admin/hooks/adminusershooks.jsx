@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-const API = import.meta.env.VITE_BACKEND_URL;
+import { apiFetch } from "../../utils/apiFetch.js";
 
 export const useAdminUsers = () => {
   const [loading, setLoading] = useState(false);
@@ -21,10 +20,7 @@ export const useAdminUsers = () => {
         ...(filters.search && { search: filters.search })
       });
 
-      const res = await fetch(
-        `${API}/api/admin/users?${queryParams}`,
-        { credentials: "include" }
-      );
+      const res = await apiFetch(`/api/admin/users?${queryParams}`);
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -58,10 +54,7 @@ export const useAdminUsers = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API}/api/admin/users/${id}`,
-        { credentials: "include" }
-      );
+      const res = await apiFetch(`/api/admin/users/${id}`);
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -85,13 +78,7 @@ export const useAdminUsers = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API}/api/admin/users/${id}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
-      );
+      const res = await apiFetch(`/api/admin/users/${id}`, { method: "DELETE" });
 
       const data = await res.json();
       if (!res.ok || !data.success) {

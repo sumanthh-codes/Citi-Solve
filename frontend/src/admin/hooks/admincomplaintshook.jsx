@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-const API = import.meta.env.VITE_BACKEND_URL;
+import { apiFetch } from "../../utils/apiFetch.js";
 
 export const useAdminComplaints = () => {
   const [loading, setLoading] = useState(false);
@@ -23,10 +22,7 @@ export const useAdminComplaints = () => {
         ...(filters.search && { search: filters.search })
       });
 
-      const res = await fetch(
-        `${API}/api/admin/complaints?${queryParams}`,
-        { credentials: "include" }
-      );
+      const res = await apiFetch(`/api/admin/complaints?${queryParams}`);
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -60,10 +56,7 @@ export const useAdminComplaints = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API}/api/admin/complaints/${id}`,
-        { credentials: "include" }
-      );
+      const res = await apiFetch(`/api/admin/complaints/${id}`);
 
       const data = await res.json();
       if (!res.ok || !data.success) {

@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-const API = import.meta.env.VITE_BACKEND_URL;
+import { apiFetch, clearToken } from "../../utils/apiFetch.js";
 
 export const useAdminPortal = () => {
   const [loading, setLoading] = useState(false);
@@ -14,9 +13,7 @@ export const useAdminPortal = () => {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/api/auth/profile`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/auth/profile");
 
       const data = await res.json();
       if (!res.ok) {
@@ -37,12 +34,11 @@ export const useAdminPortal = () => {
   ========================= */
   const logoutAdmin = async () => {
     try {
-      await fetch(`${API}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
+      await apiFetch("/api/auth/logout", { method: "POST" });
+      clearToken();
       return { success: true };
     } catch (err) {
+      clearToken();
       return { success: false, error: err.message };
     }
   };

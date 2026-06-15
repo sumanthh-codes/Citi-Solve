@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-const API = import.meta.env.VITE_BACKEND_URL;
+import { apiFetch } from "../../utils/apiFetch.js";
 
 export const useAdminAllocation = () => {
   const [loading, setLoading] = useState(false);
@@ -15,10 +14,7 @@ export const useAdminAllocation = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API}/api/admin/complaints?status=pending&limit=100`,
-        { credentials: "include" }
-      );
+      const res = await apiFetch("/api/admin/complaints?status=pending&limit=100");
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -43,10 +39,7 @@ export const useAdminAllocation = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API}/api/admin/complaints/${complaintId}/available-staff`,
-        { credentials: "include" }
-      );
+      const res = await apiFetch(`/api/admin/complaints/${complaintId}/available-staff`);
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -71,17 +64,10 @@ export const useAdminAllocation = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API}/api/admin/complaints/${complaintId}/assign`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({ staffId }),
-        }
-      );
+      const res = await apiFetch(`/api/admin/complaints/${complaintId}/assign`, {
+        method: "POST",
+        body: JSON.stringify({ staffId }),
+      });
 
       const data = await res.json();
       if (!res.ok || !data.success) {

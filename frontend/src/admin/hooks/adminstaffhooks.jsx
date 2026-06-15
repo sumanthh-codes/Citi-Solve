@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-const API = import.meta.env.VITE_BACKEND_URL;
+import { apiFetch } from "../../utils/apiFetch.js";
 
 export const useAdminStaff = () => {
   const [loading, setLoading] = useState(false);
@@ -22,10 +21,7 @@ export const useAdminStaff = () => {
         ...(filters.search && { search: filters.search })
       });
 
-      const res = await fetch(
-        `${API}/api/admin/staff?${queryParams}`,
-        { credentials: "include" }
-      );
+      const res = await apiFetch(`/api/admin/staff?${queryParams}`);
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -59,10 +55,7 @@ export const useAdminStaff = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API}/api/admin/staff/${id}`,
-        { credentials: "include" }
-      );
+      const res = await apiFetch(`/api/admin/staff/${id}`);
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -83,10 +76,8 @@ export const useAdminStaff = () => {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/api/admin/staff/${id}/approval`, {
+      const res = await apiFetch(`/api/admin/staff/${id}/approval`, {
         method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
 

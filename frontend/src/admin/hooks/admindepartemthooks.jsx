@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-const API = import.meta.env.VITE_BACKEND_URL;
+import { apiFetch } from "../../utils/apiFetch.js";
 
 export const useAdminDepartments = () => {
   const [loading, setLoading] = useState(false);
@@ -15,9 +14,7 @@ export const useAdminDepartments = () => {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/api/admin/departments`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/admin/departments");
 
       const data = await res.json();
       if (!res.ok || !data.success) {

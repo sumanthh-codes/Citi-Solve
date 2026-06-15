@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-const API = import.meta.env.VITE_BACKEND_URL;
+import { apiFetch, clearToken } from "../../utils/apiFetch.js";
 
 export const useAdminDashboard = () => {
   const [loading, setLoading] = useState(false);
@@ -14,9 +13,7 @@ export const useAdminDashboard = () => {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/api/auth/profile`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/auth/profile");
 
       const data = await res.json();
       if (!res.ok) {
@@ -41,9 +38,7 @@ export const useAdminDashboard = () => {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/api/admin/dashboard`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/admin/dashboard");
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -91,9 +86,7 @@ export const useAdminDashboard = () => {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/api/admin/department-workload`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/admin/department-workload");
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -114,12 +107,10 @@ export const useAdminDashboard = () => {
   ========================= */
   const logoutAdmin = async () => {
     try {
-      await fetch(`${API}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
+      await apiFetch("/api/auth/logout", { method: "POST" });
+      clearToken();
     } catch {
-      // silent fail (cookies cleared anyway)
+      clearToken();
     }
   };
 
