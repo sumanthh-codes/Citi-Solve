@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { setToken, clearToken } from '../utils/apiFetch.js';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -128,6 +129,9 @@ export const useAuth = () => {
         navigate('/');
         return true;
       }
+
+      // Save token for cross-origin Authorization header fallback
+      if (data.accessToken) setToken(data.accessToken);
 
       // Backend returns role in user object
       const role = data.user?.role;
@@ -264,6 +268,9 @@ export const useAuth = () => {
         return false;
       }
 
+      // Save token for cross-origin Authorization header fallback
+      if (data.accessToken) setToken(data.accessToken);
+
       navigate('/citizen/home');
       return true;
     } catch {
@@ -283,9 +290,11 @@ export const useAuth = () => {
         method: 'POST',
         credentials: 'include',
       });
+      clearToken(); // clear stored token
       navigate('/');
     } catch {
-      // silent fail
+      clearToken();
+      navigate('/');
     }
   };
 
