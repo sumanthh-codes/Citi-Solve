@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-const API = import.meta.env.VITE_BACKEND_URL;
+import { apiFetch, clearToken } from "../../utils/apiFetch.js";
 
 export const useStaffPortal = () => {
   const [loading, setLoading] = useState(false);
@@ -15,9 +14,7 @@ export const useStaffPortal = () => {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/api/staff/profile`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/staff/profile");
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -43,9 +40,7 @@ export const useStaffPortal = () => {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/api/staff/dashboard`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/staff/dashboard");
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -94,10 +89,7 @@ export const useStaffPortal = () => {
         ...(params.search && { search: params.search })
       });
 
-      const res = await fetch(
-        `${API}/api/staff/complaints?${queryParams}`,
-        { credentials: "include" }
-      );
+      const res = await apiFetch(`/api/staff/complaints?${queryParams}`);
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -124,12 +116,10 @@ export const useStaffPortal = () => {
   ========================= */
   const logoutStaff = async () => {
     try {
-      await fetch(`${API}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
+      await apiFetch("/api/auth/logout", { method: "POST" });
+      clearToken();
     } catch {
-      // silent fail (cookies cleared anyway)
+      clearToken();
     }
   };
 

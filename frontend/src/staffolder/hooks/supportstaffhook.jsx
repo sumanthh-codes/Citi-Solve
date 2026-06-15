@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-const API = import.meta.env.VITE_BACKEND_URL;
+import { apiFetch, clearToken } from "../../utils/apiFetch.js";
 
 export const useStaffSupport = () => {
   const [loading, setLoading] = useState(false);
@@ -14,9 +13,7 @@ export const useStaffSupport = () => {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/api/staff/profile`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/staff/profile");
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -41,12 +38,8 @@ export const useStaffSupport = () => {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/api/support/submit`, {
+      const res = await apiFetch("/api/support/submit", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
         body: JSON.stringify({
           subject: messageData.subject,
           category: messageData.category,
@@ -79,12 +72,10 @@ export const useStaffSupport = () => {
   ========================= */
   const logoutStaff = async () => {
     try {
-      await fetch(`${API}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
+      await apiFetch("/api/auth/logout", { method: "POST" });
+      clearToken();
     } catch {
-      // silent fail (cookies cleared anyway)
+      clearToken();
     }
   };
 

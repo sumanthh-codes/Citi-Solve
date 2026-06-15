@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-const API = import.meta.env.VITE_BACKEND_URL;
+import { apiFetch, clearToken } from "../../utils/apiFetch.js";
 
 export const useDepartmentComplaints = () => {
   const [loading, setLoading] = useState(false);
@@ -14,9 +13,7 @@ export const useDepartmentComplaints = () => {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/api/staff/profile`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/staff/profile");
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -44,15 +41,12 @@ export const useDepartmentComplaints = () => {
       const queryParams = new URLSearchParams({
         status: filters.status || 'all',
         page: filters.page || 1,
-        limit: filters.limit || 50, // Get more for client-side filtering
+        limit: filters.limit || 50,
         sortBy: filters.sortBy || 'newest',
         ...(filters.search && { search: filters.search })
       });
 
-      const res = await fetch(
-        `${API}/api/staff/complaints?${queryParams}`,
-        { credentials: "include" }
-      );
+      const res = await apiFetch(`/api/staff/complaints?${queryParams}`);
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -61,10 +55,10 @@ export const useDepartmentComplaints = () => {
 
       return {
         complaints: data.complaints || [],
-        pagination: data.pagination || { 
-          currentPage: 1, 
-          totalPages: 0, 
-          totalComplaints: 0 
+        pagination: data.pagination || {
+          currentPage: 1,
+          totalPages: 0,
+          totalComplaints: 0
         },
       };
     } catch (err) {
@@ -86,10 +80,7 @@ export const useDepartmentComplaints = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API}/api/staff/complaints/${id}`,
-        { credentials: "include" }
-      );
+      const res = await apiFetch(`/api/staff/complaints/${id}`);
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -113,17 +104,10 @@ export const useDepartmentComplaints = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API}/api/staff/complaints/${id}/status`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(statusData),
-        }
-      );
+      const res = await apiFetch(`/api/staff/complaints/${id}/status`, {
+        method: "PUT",
+        body: JSON.stringify(statusData),
+      });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -151,12 +135,10 @@ export const useDepartmentComplaints = () => {
   ========================= */
   const logoutStaff = async () => {
     try {
-      await fetch(`${API}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
+      await apiFetch("/api/auth/logout", { method: "POST" });
+      clearToken();
     } catch {
-      // silent fail (cookies cleared anyway)
+      clearToken();
     }
   };
 

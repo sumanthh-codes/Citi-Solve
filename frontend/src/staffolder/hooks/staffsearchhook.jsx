@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-const API = import.meta.env.VITE_BACKEND_URL;
+import { apiFetch, clearToken } from "../../utils/apiFetch.js";
 
 export const useStaffSearch = () => {
   const [loading, setLoading] = useState(false);
@@ -14,9 +13,7 @@ export const useStaffSearch = () => {
     setError(null);
 
     try {
-      const res = await fetch(`${API}/api/staff/profile`, {
-        credentials: "include",
-      });
+      const res = await apiFetch("/api/staff/profile");
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -41,10 +38,7 @@ export const useStaffSearch = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API}/api/staff/complaints?status=all&limit=100&sortBy=newest`,
-        { credentials: "include" }
-      );
+      const res = await apiFetch("/api/staff/complaints?status=all&limit=100&sortBy=newest");
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -69,24 +63,17 @@ export const useStaffSearch = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API}/api/staff/complaints/search/advanced`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            dateFrom: searchParams.dateFrom || null,
-            dateTo: searchParams.dateTo || null,
-            status: searchParams.status || 'all',
-            keyword: searchParams.keyword || '',
-            page: searchParams.page || 1,
-            limit: searchParams.limit || 100,
-          }),
-        }
-      );
+      const res = await apiFetch("/api/staff/complaints/search/advanced", {
+        method: "POST",
+        body: JSON.stringify({
+          dateFrom: searchParams.dateFrom || null,
+          dateTo: searchParams.dateTo || null,
+          status: searchParams.status || 'all',
+          keyword: searchParams.keyword || '',
+          page: searchParams.page || 1,
+          limit: searchParams.limit || 100,
+        }),
+      });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -120,10 +107,7 @@ export const useStaffSearch = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API}/api/staff/complaints/${id}`,
-        { credentials: "include" }
-      );
+      const res = await apiFetch(`/api/staff/complaints/${id}`);
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -147,17 +131,10 @@ export const useStaffSearch = () => {
     setError(null);
 
     try {
-      const res = await fetch(
-        `${API}/api/staff/complaints/${id}/status`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(statusData),
-        }
-      );
+      const res = await apiFetch(`/api/staff/complaints/${id}/status`, {
+        method: "PUT",
+        body: JSON.stringify(statusData),
+      });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -185,12 +162,10 @@ export const useStaffSearch = () => {
   ========================= */
   const logoutStaff = async () => {
     try {
-      await fetch(`${API}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
+      await apiFetch("/api/auth/logout", { method: "POST" });
+      clearToken();
     } catch {
-      // silent fail (cookies cleared anyway)
+      clearToken();
     }
   };
 
