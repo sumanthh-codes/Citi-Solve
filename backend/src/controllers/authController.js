@@ -255,16 +255,9 @@ export const verifySignupOtp = async (req, res) => {
         const response = {
             success: true,
             message: 'Account verified successfully',
-            user: buildUserResponse(user)
+            user: buildUserResponse(user),
+            accessToken // always included for cross-origin Authorization header fallback
         };
-
-        if (process.env.NODE_ENV !== 'production') {
-            response.dev_tokens = {
-                accessToken,
-                refreshToken,
-                note: "⚠️ Tokens in response are for DEVELOPMENT testing only. In production, use cookies."
-            };
-        }
 
         return res.json(response);
 
@@ -500,7 +493,8 @@ export const googleLogin = async (req, res) => {
         return res.json({
             success: true,
             message: 'Google login successful',
-            user: buildUserResponse(user)
+            user: buildUserResponse(user),
+            accessToken // always included for cross-origin Authorization header fallback
         });
     } catch (error) {
         console.error('Google login error:', error);
@@ -569,16 +563,10 @@ export const verifyLoginOtp = async (req, res) => {
         const response = {
             success: true,
             message: 'Login successful',
-            user: buildUserResponse(user)
+            user: buildUserResponse(user),
+            accessToken // always included for cross-origin Authorization header fallback
         };
 
-        if (process.env.NODE_ENV !== 'production') {
-            response.dev_tokens = {
-                accessToken,
-                refreshToken,
-                note: '⚠️ Dev only — tokens via cookies in production'
-            };
-        }
         await sendLoginSuccessEmail({
             email: user.email,
             name: user.name,
