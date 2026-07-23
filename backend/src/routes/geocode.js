@@ -1,6 +1,5 @@
 // routes/geocode.js
 import express from "express";
-import fetch from "node-fetch";
 import { geocodeLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
