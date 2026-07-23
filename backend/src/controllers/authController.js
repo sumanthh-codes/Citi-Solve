@@ -73,30 +73,39 @@ const buildUserResponse = (user) => {
 };
 
 
-const setTokenCookies = (res, accessToken, refreshToken) => {
+const ACCESS_TOKEN_MAX_AGE = 4 * 60 * 60 * 1000;      // 4 hours
+const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+// Single source of truth for auth cookie attributes. Every place that sets or
+// clears an auth cookie MUST use this so the attributes match exactly —
+// otherwise the browser treats a re-issued cookie as a different cookie (or
+// won't send it cross-site). In particular sameSite must stay 'none' in prod
+// for the cross-origin (frontend/backend on different domains) Vercel deploy;
+// 'strict' would stop the cookie being sent on cross-site requests.
+const authCookieOptions = (maxAge) => {
     const isProduction = process.env.NODE_ENV === 'production';
-    
-    const commonOptions = {
+    return {
         httpOnly: true,
         secure: isProduction,
         sameSite: isProduction ? 'none' : 'lax',
-        path: '/'
+        path: '/',
+        ...(isProduction && process.env.COOKIE_DOMAIN
+            ? { domain: process.env.COOKIE_DOMAIN }
+            : {}),
+        ...(maxAge != null ? { maxAge } : {})
     };
-    
-    res.cookie('accessToken', accessToken, {
-        ...commonOptions,
-        maxAge: 4 * 60 * 60 * 1000
-    });
+};
 
-    res.cookie('refreshToken', refreshToken, {
-        ...commonOptions,
-        maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+const setTokenCookies = (res, accessToken, refreshToken) => {
+    res.cookie('accessToken', accessToken, authCookieOptions(ACCESS_TOKEN_MAX_AGE));
+    res.cookie('refreshToken', refreshToken, authCookieOptions(REFRESH_TOKEN_MAX_AGE));
 };
 
 const clearAuthCookies = (res) => {
-    res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/' });
+    // clearCookie only removes the cookie if the attributes (path/domain/
+    // sameSite/secure) match those it was set with, so reuse the same options.
+    res.clearCookie('accessToken', authCookieOptions());
+    res.clearCookie('refreshToken', authCookieOptions());
 };
 
 
@@ -751,15 +760,7 @@ export const refreshAccessToken = async (req, res) => {
 
         const newAccessToken = generateAccessToken(user._id, user.role);
 
-        const isProduction = process.env.NODE_ENV === 'production';
-        res.cookie('accessToken', newAccessToken, {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: isProduction ? 'strict' : 'lax',
-            path: '/',
-            domain: isProduction ? process.env.COOKIE_DOMAIN : undefined,
-            maxAge: 4 * 60 * 60 * 1000
-        });
+        res.cookie('accessToken', newAccessToken, authCookieOptions(ACCESS_TOKEN_MAX_AGE));
 
         res.json({
             success: true,
