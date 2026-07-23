@@ -407,13 +407,12 @@ export const sendLoginOtp = async (req, res) => {
         }
 
         const otp = String(Math.floor(100000 + Math.random() * 900000));
-        console.log(otp);
 
         const hashedOtp = await bcrypt.hash(otp, 10);
 
-        user.verifyOtp = hashedOtp;
-        user.verifyOtpExpireAt = Date.now() + 10 * 60 * 1000;
-        user.verifyOtpAttempts = 0;
+        user.loginOtp = hashedOtp;
+        user.loginOtpExpireAt = Date.now() + 10 * 60 * 1000;
+        user.loginOtpAttempts = 0;
 
         await user.save();
 
@@ -556,22 +555,22 @@ export const verifyLoginOtp = async (req, res) => {
             });
         }
 
-        if (!user.verifyOtp || user.verifyOtpExpireAt < Date.now()) {
+        if (!user.loginOtp || user.loginOtpExpireAt < Date.now()) {
             return res.status(400).json({
                 success: false,
                 message: 'OTP expired'
             });
         }
 
-        const isValidOtp = await bcrypt.compare(otp, user.verifyOtp);
+        const isValidOtp = await bcrypt.compare(otp, user.loginOtp);
 
         if (!isValidOtp) {
-            user.verifyOtpAttempts = (user.verifyOtpAttempts || 0) + 1;
+            user.loginOtpAttempts = (user.loginOtpAttempts || 0) + 1;
 
-            if (user.verifyOtpAttempts >= MAX_OTP_ATTEMPTS) {
-                user.verifyOtp = "";
-                user.verifyOtpExpireAt = 0;
-                user.verifyOtpAttempts = 0;
+            if (user.loginOtpAttempts >= MAX_OTP_ATTEMPTS) {
+                user.loginOtp = "";
+                user.loginOtpExpireAt = 0;
+                user.loginOtpAttempts = 0;
                 await user.save();
                 return res.status(429).json({
                     success: false,
@@ -583,14 +582,14 @@ export const verifyLoginOtp = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid OTP',
-                attemptsRemaining: MAX_OTP_ATTEMPTS - user.verifyOtpAttempts
+                attemptsRemaining: MAX_OTP_ATTEMPTS - user.loginOtpAttempts
             });
         }
 
 
-        user.verifyOtp = "";
-        user.verifyOtpExpireAt = 0;
-        user.verifyOtpAttempts = 0;
+        user.loginOtp = "";
+        user.loginOtpExpireAt = 0;
+        user.loginOtpAttempts = 0;
         const accessToken = generateAccessToken(user._id, user.role);
         const refreshToken = generateRefreshToken(user._id, user.role);
 
@@ -657,7 +656,7 @@ export const resendLoginOtp = async (req, res) => {
             });
         }
 
-        if (user.verifyOtpExpireAt && user.verifyOtpExpireAt > Date.now() + 9 * 60 * 1000) {
+        if (user.loginOtpExpireAt && user.loginOtpExpireAt > Date.now() + 9 * 60 * 1000) {
             return res.status(429).json({
                 success: false,
                 message: 'Please wait before requesting a new OTP'
@@ -667,9 +666,9 @@ export const resendLoginOtp = async (req, res) => {
         const otp = String(Math.floor(100000 + Math.random() * 900000));
         const hashedOtp = await bcrypt.hash(otp, 10);
 
-        user.verifyOtp = hashedOtp;
-        user.verifyOtpExpireAt = Date.now() + 10 * 60 * 1000;
-        user.verifyOtpAttempts = 0;
+        user.loginOtp = hashedOtp;
+        user.loginOtpExpireAt = Date.now() + 10 * 60 * 1000;
+        user.loginOtpAttempts = 0;
         await user.save();
 
         await transporter.sendMail({

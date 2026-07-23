@@ -79,9 +79,26 @@ const userSchema = new mongoose.Schema({
     default: 0
   },
 
-  // Number of consecutive wrong verify/login OTP guesses. Reset when a new
-  // OTP is issued or on success; used to lock out brute-force attempts.
+  // Number of consecutive wrong email-verification OTP guesses. Reset when a
+  // new OTP is issued or on success; used to lock out brute-force attempts.
   verifyOtpAttempts: {
+    type: Number,
+    default: 0
+  },
+
+  // Login OTP is a separate concern from email verification, so it gets its
+  // own fields to avoid one flow clobbering the other's OTP/expiry/attempts.
+  loginOtp: {
+    type: String,
+    default: ""
+  },
+
+  loginOtpExpireAt: {
+    type: Number,
+    default: 0
+  },
+
+  loginOtpAttempts: {
     type: Number,
     default: 0
   },
