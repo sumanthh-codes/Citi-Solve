@@ -21,6 +21,11 @@ const sendWelcomeEmail = async (name, email, role) => {
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// Max consecutive wrong OTP guesses before the OTP is invalidated and the user
+// must request a fresh one. This is the serverless-safe brute-force defense
+// (persisted per-account in MongoDB, unlike the in-memory IP rate limiters).
+const MAX_OTP_ATTEMPTS = 5;
+
 const generateAccessToken = (userId, role) => {
     return jwt.sign(
         { id: userId, role: role },
@@ -220,15 +225,31 @@ export const verifySignupOtp = async (req, res) => {
         const isValidOtp = await bcrypt.compare(otp, user.verifyOtp);
 
         if (!isValidOtp) {
+            user.verifyOtpAttempts = (user.verifyOtpAttempts || 0) + 1;
+
+            if (user.verifyOtpAttempts >= MAX_OTP_ATTEMPTS) {
+                user.verifyOtp = '';
+                user.verifyOtpExpireAt = 0;
+                user.verifyOtpAttempts = 0;
+                await user.save();
+                return res.status(429).json({
+                    success: false,
+                    message: 'Too many incorrect attempts. Please request a new OTP.'
+                });
+            }
+
+            await user.save();
             return res.status(400).json({
                 success: false,
-                message: 'Invalid OTP'
+                message: 'Invalid OTP',
+                attemptsRemaining: MAX_OTP_ATTEMPTS - user.verifyOtpAttempts
             });
         }
 
         user.isAccountVerified = true;
         user.verifyOtp = '';
         user.verifyOtpExpireAt = 0;
+        user.verifyOtpAttempts = 0;
 
         if (user.role === 'staff') {
             await user.save();
@@ -302,6 +323,7 @@ export const resendSignupOtp = async (req, res) => {
 
         user.verifyOtp = hashedOtp;
         user.verifyOtpExpireAt = Date.now() + 15 * 60 * 1000;
+        user.verifyOtpAttempts = 0;
         await user.save();
 
         const mailOptions = {
@@ -391,6 +413,7 @@ export const sendLoginOtp = async (req, res) => {
 
         user.verifyOtp = hashedOtp;
         user.verifyOtpExpireAt = Date.now() + 10 * 60 * 1000;
+        user.verifyOtpAttempts = 0;
 
         await user.save();
 
@@ -543,15 +566,31 @@ export const verifyLoginOtp = async (req, res) => {
         const isValidOtp = await bcrypt.compare(otp, user.verifyOtp);
 
         if (!isValidOtp) {
+            user.verifyOtpAttempts = (user.verifyOtpAttempts || 0) + 1;
+
+            if (user.verifyOtpAttempts >= MAX_OTP_ATTEMPTS) {
+                user.verifyOtp = "";
+                user.verifyOtpExpireAt = 0;
+                user.verifyOtpAttempts = 0;
+                await user.save();
+                return res.status(429).json({
+                    success: false,
+                    message: 'Too many incorrect attempts. Please request a new OTP.'
+                });
+            }
+
+            await user.save();
             return res.status(400).json({
                 success: false,
-                message: 'Invalid OTP'
+                message: 'Invalid OTP',
+                attemptsRemaining: MAX_OTP_ATTEMPTS - user.verifyOtpAttempts
             });
         }
 
 
         user.verifyOtp = "";
         user.verifyOtpExpireAt = 0;
+        user.verifyOtpAttempts = 0;
         const accessToken = generateAccessToken(user._id, user.role);
         const refreshToken = generateRefreshToken(user._id, user.role);
 
@@ -630,6 +669,7 @@ export const resendLoginOtp = async (req, res) => {
 
         user.verifyOtp = hashedOtp;
         user.verifyOtpExpireAt = Date.now() + 10 * 60 * 1000;
+        user.verifyOtpAttempts = 0;
         await user.save();
 
         await transporter.sendMail({
@@ -760,6 +800,7 @@ export const sendResetOtp = async (req, res) => {
 
         user.resetOtp = hashedOtp;
         user.resetOtpExpireAt = Date.now() + 10 * 60 * 1000;
+        user.resetOtpAttempts = 0;
         await user.save();
 
         const mailOptions = {
@@ -808,9 +849,24 @@ export const resetPassword = async (req, res) => {
         const isValidOtp = await bcrypt.compare(otp, user.resetOtp);
 
         if (!isValidOtp) {
+            user.resetOtpAttempts = (user.resetOtpAttempts || 0) + 1;
+
+            if (user.resetOtpAttempts >= MAX_OTP_ATTEMPTS) {
+                user.resetOtp = "";
+                user.resetOtpExpireAt = 0;
+                user.resetOtpAttempts = 0;
+                await user.save();
+                return res.status(429).json({
+                    success: false,
+                    message: "Too many incorrect attempts. Please request a new OTP.",
+                });
+            }
+
+            await user.save();
             return res.status(400).json({
                 success: false,
                 message: "Invalid or expired OTP",
+                attemptsRemaining: MAX_OTP_ATTEMPTS - user.resetOtpAttempts
             });
         }
 
@@ -819,6 +875,7 @@ export const resetPassword = async (req, res) => {
         user.password = hashedPassword;
         user.resetOtp = "";
         user.resetOtpExpireAt = 0;
+        user.resetOtpAttempts = 0;
         await user.save();
 
         return res.json({

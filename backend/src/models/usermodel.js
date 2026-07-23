@@ -69,24 +69,37 @@ const userSchema = new mongoose.Schema({
     default: null
   },
 
-  verifyOtp: { 
-    type: String, 
-    default: "" 
-  },
-  
-  verifyOtpExpireAt: { 
-    type: Number, 
-    default: 0 
+  verifyOtp: {
+    type: String,
+    default: ""
   },
 
-  resetOtp: { 
-    type: String, 
-    default: "" 
+  verifyOtpExpireAt: {
+    type: Number,
+    default: 0
   },
 
-  resetOtpExpireAt: { 
-    type: Number, 
-    default: 0 
+  // Number of consecutive wrong verify/login OTP guesses. Reset when a new
+  // OTP is issued or on success; used to lock out brute-force attempts.
+  verifyOtpAttempts: {
+    type: Number,
+    default: 0
+  },
+
+  resetOtp: {
+    type: String,
+    default: ""
+  },
+
+  resetOtpExpireAt: {
+    type: Number,
+    default: 0
+  },
+
+  // Number of consecutive wrong password-reset OTP guesses.
+  resetOtpAttempts: {
+    type: Number,
+    default: 0
   },
 
   isAccountVerified: {

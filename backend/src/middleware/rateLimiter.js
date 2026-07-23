@@ -1,9 +1,19 @@
 import rateLimit from 'express-rate-limit';
 import { sendTooManyLoginAttemptsEmail } from '../utils/loginAlert.js';
 
+// NOTE: express-rate-limit uses an in-memory store by default, which does NOT
+// persist across serverless (Vercel) lambda instances — so these IP limiters
+// are a best-effort backstop only. The per-account OTP attempt counter in the
+// user document (authController) is the serverless-safe brute-force defense.
+const baseOptions = {
+    standardHeaders: true,
+    legacyHeaders: false
+};
+
 export const loginLimiter = rateLimit({
+    ...baseOptions,
     windowMs: 15 * 60 * 1000,
-    max: 200,
+    max: 10,
     handler: async (req, res) => {
 
         if (req.body?.email) {
@@ -23,8 +33,9 @@ export const loginLimiter = rateLimit({
 
 
 export const otpLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, 
-    max: 100,
+    ...baseOptions,
+    windowMs: 60 * 60 * 1000,
+    max: 20,
     message: {
         success: false,
         message: 'Too many OTP requests. Please try again after 1 hour.'
@@ -32,8 +43,9 @@ export const otpLimiter = rateLimit({
 });
 
 export const passwordResetLimiter = rateLimit({
+    ...baseOptions,
     windowMs: 60 * 60 * 1000,
-    max: 100,
+    max: 10,
     message: {
         success: false,
         message: 'Too many password reset attempts. Please try again later.'
@@ -41,6 +53,7 @@ export const passwordResetLimiter = rateLimit({
 });
 
 export const geocodeLimiter = rateLimit({
+    ...baseOptions,
     windowMs: 15 * 60 * 1000,
     max: 60,
     message: {
@@ -50,6 +63,7 @@ export const geocodeLimiter = rateLimit({
 });
 
 export const complaintSubmitLimiter = rateLimit({
+    ...baseOptions,
     windowMs: 60 * 60 * 1000,
     max: 10,
     message: {
@@ -59,6 +73,7 @@ export const complaintSubmitLimiter = rateLimit({
 });
 
 export const supportSubmitLimiter = rateLimit({
+    ...baseOptions,
     windowMs: 60 * 60 * 1000,
     max: 10,
     message: {
