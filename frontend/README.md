@@ -1,4 +1,28 @@
-# React + Vite
+# CitiSolve — Frontend
+
+## Deployment: single-origin auth (IMPORTANT)
+
+Auth uses **httpOnly cookies** and the frontend is served **single-origin** — the
+browser only ever talks to the frontend domain, which forwards API calls to the
+backend. This keeps the auth token out of JavaScript (no localStorage token, so
+no XSS token theft).
+
+Two things must be configured for this to work:
+
+1. **`vercel.json` rewrite** — edit `frontend/vercel.json` and replace
+   `YOUR-BACKEND-DOMAIN.vercel.app` with your real backend production domain.
+   The frontend then proxies `/api/*` to the backend so requests are same-origin.
+
+2. **`VITE_BACKEND_URL` must be empty** in the frontend Vercel project's
+   environment variables (or unset). This makes all API calls relative
+   (`/api/...`) so they hit the rewrite instead of going cross-origin.
+
+Local dev: `vite.config.js` proxies `/api` to `http://localhost:3000`, so leave
+`VITE_BACKEND_URL` empty locally too and run the backend on port 3000.
+
+---
+
+## React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

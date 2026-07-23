@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || '';
 
 export const useMyComplaints = () => {
   const [loading, setLoading] = useState(false);

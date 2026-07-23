@@ -107,7 +107,7 @@ const CitiSolveLanding = () => {
 
       // Reverse geocoding using OpenStreetMap Nominatim
       const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/geocode/reverse?lat=${latitude}&lon=${longitude}`,{
+          `${import.meta.env.VITE_BACKEND_URL || ''}/api/geocode/reverse?lat=${latitude}&lon=${longitude}`,{
             credentials: 'include'
           }
       );

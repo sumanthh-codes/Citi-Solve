@@ -79,15 +79,16 @@ const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 // Single source of truth for auth cookie attributes. Every place that sets or
 // clears an auth cookie MUST use this so the attributes match exactly —
 // otherwise the browser treats a re-issued cookie as a different cookie (or
-// won't send it cross-site). In particular sameSite must stay 'none' in prod
-// for the cross-origin (frontend/backend on different domains) Vercel deploy;
-// 'strict' would stop the cookie being sent on cross-site requests.
+// won't send it cross-site). The app is served single-origin (frontend proxies
+// /api/* to the backend via a Vercel rewrite in prod / Vite proxy in dev), so
+// 'lax' is correct and also gives CSRF protection on cross-site top-level
+// navigations. 'secure' is on in prod (HTTPS) and off in dev (http://localhost).
 const authCookieOptions = (maxAge) => {
     const isProduction = process.env.NODE_ENV === 'production';
     return {
         httpOnly: true,
         secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax',
+        sameSite: 'lax',
         path: '/',
         ...(isProduction && process.env.COOKIE_DOMAIN
             ? { domain: process.env.COOKIE_DOMAIN }
@@ -286,8 +287,7 @@ export const verifySignupOtp = async (req, res) => {
         const response = {
             success: true,
             message: 'Account verified successfully',
-            user: buildUserResponse(user),
-            accessToken // always included for cross-origin Authorization header fallback
+            user: buildUserResponse(user)
         };
 
         return res.json(response);
@@ -523,8 +523,7 @@ export const googleLogin = async (req, res) => {
         return res.json({
             success: true,
             message: 'Google login successful',
-            user: buildUserResponse(user),
-            accessToken // always included for cross-origin Authorization header fallback
+            user: buildUserResponse(user)
         });
     } catch (error) {
         logger.error('Google login error:', error);
@@ -609,8 +608,7 @@ export const verifyLoginOtp = async (req, res) => {
         const response = {
             success: true,
             message: 'Login successful',
-            user: buildUserResponse(user),
-            accessToken // always included for cross-origin Authorization header fallback
+            user: buildUserResponse(user)
         };
 
         await sendLoginSuccessEmail({

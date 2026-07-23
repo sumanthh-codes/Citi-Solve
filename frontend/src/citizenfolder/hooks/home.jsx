@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const API = import.meta.env.VITE_BACKEND_URL;
+const API = import.meta.env.VITE_BACKEND_URL || '';
 
 export const useCitizenPortal = () => {
   const [loading, setLoading] = useState(false);

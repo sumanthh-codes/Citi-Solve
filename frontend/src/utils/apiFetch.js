@@ -1,46 +1,47 @@
 /**
- * apiFetch — Authenticated API helper
+ * apiFetch — API helper for the single-origin deployment.
  *
- * Sends requests with BOTH:
- *   1. cookies (via credentials: 'include') — works when same-origin
- *   2. Authorization header (from localStorage) — fallback for cross-origin
+ * The frontend proxies /api/* to the backend (Vercel rewrite in prod, Vite
+ * proxy in dev), so every request is same-origin and authentication rides
+ * entirely on httpOnly cookies sent via credentials: 'include'.
  *
- * This ensures auth works on ALL browsers and devices.
+ * We deliberately do NOT keep the access token in localStorage. A first-party
+ * httpOnly cookie is invisible to JavaScript, so it cannot be exfiltrated by
+ * XSS — storing a copy in localStorage would throw that protection away.
+ *
+ * getToken/setToken/clearToken are kept for backwards compatibility with the
+ * many call sites that still import them:
+ *   - getToken/setToken are inert (the token is never in JS anymore).
+ *   - clearToken purges any token left behind by the old cross-origin scheme.
  */
 
 const API = import.meta.env.VITE_BACKEND_URL || '';
 
-const TOKEN_KEY = 'citisolve_token';
+const LEGACY_TOKEN_KEY = 'citisolve_token';
 
-export const getToken = () => localStorage.getItem(TOKEN_KEY);
-export const setToken = (token) => {
-  if (token) localStorage.setItem(TOKEN_KEY, token);
-};
-export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+export const getToken = () => null;
+export const setToken = () => {};
+export const clearToken = () => localStorage.removeItem(LEGACY_TOKEN_KEY);
 
 /**
  * apiFetch(path, options)
- * @param {string} path  - e.g. '/api/auth/profile'
- * @param {object} options - same as fetch options (method, body, headers, etc.)
+ * @param {string} path    - e.g. '/api/auth/profile'
+ * @param {object} options - same as fetch options (method, body, headers, ...)
  *
- * NOTE: If body is FormData, Content-Type is NOT set (browser sets it automatically
- *       with correct multipart boundary for file uploads).
+ * NOTE: If body is FormData, Content-Type is NOT set (the browser sets it
+ *       automatically with the correct multipart boundary for file uploads).
  */
 export const apiFetch = async (path, options = {}) => {
-  const token = getToken();
   const isFormData = options.body instanceof FormData;
 
   const headers = {
-    // Don't set Content-Type for FormData — browser sets it with boundary
     ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers || {}),
-    // Always add Authorization header if token exists (cross-origin fallback)
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
   return fetch(`${API}${path}`, {
     ...options,
     headers,
-    credentials: 'include', // still send cookies where browser allows
+    credentials: 'include', // send the httpOnly auth cookies (same-origin)
   });
 };

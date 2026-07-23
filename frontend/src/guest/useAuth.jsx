@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { setToken, clearToken } from '../utils/apiFetch.js';
+import { clearToken } from '../utils/apiFetch.js';
 
-const API_URL = import.meta.env.VITE_BACKEND_URL;
+const API_URL = import.meta.env.VITE_BACKEND_URL || '';
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -130,8 +130,8 @@ export const useAuth = () => {
         return true;
       }
 
-      // Save token for cross-origin Authorization header fallback
-      if (data.accessToken) setToken(data.accessToken);
+      // Auth is carried by the httpOnly cookie set by the backend — nothing
+      // to persist client-side.
 
       // Backend returns role in user object
       const role = data.user?.role;
@@ -268,9 +268,7 @@ export const useAuth = () => {
         return false;
       }
 
-      // Save token for cross-origin Authorization header fallback
-      if (data.accessToken) setToken(data.accessToken);
-
+      // Auth is carried by the httpOnly cookie set by the backend.
       navigate('/citizen/home');
       return true;
     } catch {

@@ -89,7 +89,7 @@ const SubmitComplaint = () => {
         setLiveGPS({ lat: latitude, lng: longitude });
         try {
           const res = await fetch(
-            `${import.meta.env.VITE_BACKEND_URL}/api/geocode/reverse?lat=${latitude}&lon=${longitude}`
+            `${import.meta.env.VITE_BACKEND_URL || ''}/api/geocode/reverse?lat=${latitude}&lon=${longitude}`
           );
           const data = await res.json();
 

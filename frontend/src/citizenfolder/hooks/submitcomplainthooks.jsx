@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const API = import.meta.env.VITE_BACKEND_URL;
+const API = import.meta.env.VITE_BACKEND_URL || '';
 
 export const useSubmitPortal = () => {
   const [apiLoading, setApiLoading] = useState(false);
