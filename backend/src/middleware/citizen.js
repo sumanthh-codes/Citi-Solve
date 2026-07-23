@@ -1,6 +1,7 @@
 
 import jwt from 'jsonwebtoken';
 import userModel from '../models/usermodel.js';
+import { logger } from '../utils/logger.js';
 export const citizenAuth = async (req, res, next) => {
     try {
         let token = req.cookies.accessToken;
@@ -61,7 +62,7 @@ export const citizenAuth = async (req, res, next) => {
                 expired: true
             });
         }
-        console.error("AUTH ERROR:", error);
+        logger.error("AUTH ERROR:", error);
 
         return res.status(401).json({
             success: false,

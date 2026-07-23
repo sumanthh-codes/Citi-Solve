@@ -3,6 +3,7 @@ import complaintModel from '../models/complaintModel.js';
 import mongoose from 'mongoose';
 import { uploadToCloudinary, deleteFromCloudinary } from '../utils/cloudinaryUpload.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { logger } from '../utils/logger.js';
 
 const VALID_CATEGORIES = ['roads', 'power', 'sanitation', 'water', 'other'];
 
@@ -122,7 +123,7 @@ Rules:
 
     return { decision: 'allow', isCivicIssue, matchesCategory, confidence: safeConfidence, reason };
   } catch (err) {
-    console.error('Gemini verification error:', err.message);
+    logger.error('Gemini verification error:', err.message);
     return {
       decision: 'warn',
       matches: true,
@@ -215,7 +216,7 @@ if (files.length > 5) {
   const firstFile = files[0];
   if (firstFile) {
     const aiResult = await verifyImageWithGemini(firstFile.buffer, firstFile.mimetype, category);
-    console.log('AI verification result:', aiResult);
+    logger.debug('AI verification result:', aiResult);
 
     if (aiResult.decision === 'block') {
       return res.status(400).json({
@@ -268,11 +269,11 @@ if (files.length > 5) {
       try {
         await deleteFromCloudinary(url);
       } catch (cleanupError) {
-        console.error('Image cleanup failed:', cleanupError);
+        logger.error('Image cleanup failed:', cleanupError);
       }
     }
     
-    console.error('Submit complaint error:', error);
+    logger.error('Submit complaint error:', error);
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({ 
@@ -306,7 +307,7 @@ export const getComplaintById = async (req, res) => {
     res.json({ success: true, complaint });
     
   } catch (error) {
-    console.error('Get complaint error:', error);
+    logger.error('Get complaint error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
@@ -372,7 +373,7 @@ export const getMyCitizensComplaints = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get complaints error:', error);
+    logger.error('Get complaints error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
@@ -411,9 +412,6 @@ export const getCitizenAnalytics = async (req, res) => {
         } 
       }
     ]);
-    console.log('citizenId:', citizenId);
-    console.log('Raw statusDistribution:', statusDistribution);
-    console.log('Raw categoryBreakdown:', categoryBreakdown);
 
 
     const [total, resolved, inProgress, pending, assigned, rejected] = await Promise.all([
@@ -446,9 +444,6 @@ export const getCitizenAnalytics = async (req, res) => {
       count: categoryMap[category] || 0
     }));
 
-    console.log('Formatted status:', formattedStatus);
-    console.log('Formatted category:', formattedCategory);
-
     res.json({
       success: true,
       analytics: {
@@ -466,7 +461,7 @@ export const getCitizenAnalytics = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get citizen analytics error:', error);
+    logger.error('Get citizen analytics error:', error);
     res.status(500).json({ 
       success: false, 
       error: 'Something went wrong. Please try again later.' 

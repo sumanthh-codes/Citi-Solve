@@ -1,5 +1,6 @@
 import supportModel from '../models/supportModel.js';
 import transporter from "../config/nodemailer.js";
+import { logger } from '../utils/logger.js';
 
 const escapeHtml = (str) => String(str)
   .replace(/&/g, '&amp;')
@@ -61,7 +62,7 @@ export const submitSupportMessage = async (req, res) => {
       support 
     });
   } catch (error) {
-    console.error('Submit support message error:', error);
+    logger.error('Submit support message error:', error);
     res.status(400).json({ success: false, error: 'Unable to send support message. Please try again.' });
   }
 };

@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import complaintModel from '../models/complaintModel.js';
 import userModel from '../models/usermodel.js';
 import transporter from '../config/nodemailer.js';
+import { logger } from '../utils/logger.js';
 
 const approvedStaffFilter = { $nin: ['pending', 'rejected'] };
 
@@ -57,7 +58,7 @@ export const getAdminDashboard = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('District admin dashboard error:', error);
+    logger.error('District admin dashboard error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
@@ -137,7 +138,7 @@ export const getDepartmentWorkload = async (req, res) => {
       workload
     });
   } catch (error) {
-    console.error('Department workload error:', error);
+    logger.error('Department workload error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
@@ -214,7 +215,7 @@ export const getAllComplaints = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get all complaints error:', error);
+    logger.error('Get all complaints error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
@@ -240,7 +241,7 @@ export const getComplaintById = async (req, res) => {
 
     res.json({ success: true, complaint });
   } catch (error) {
-    console.error('Get complaint error:', error);
+    logger.error('Get complaint error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
@@ -302,7 +303,7 @@ export const getAvailableStaffForComplaint = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get available staff error:', error);
+    logger.error('Get available staff error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
@@ -387,7 +388,7 @@ export const assignComplaintToStaff = async (req, res) => {
       complaint: updatedComplaint
     });
   } catch (error) {
-    console.error('Assign complaint error:', error);
+    logger.error('Assign complaint error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
@@ -461,7 +462,7 @@ export const getAllStaff = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get all staff error:', error);
+    logger.error('Get all staff error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
@@ -498,7 +499,7 @@ export const getStaffById = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get staff error:', error);
+    logger.error('Get staff error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
@@ -563,7 +564,7 @@ export const updateStaffApproval = async (req, res) => {
       });
     } catch (emailError) {
       emailSent = false;
-      console.error('Staff approval email error:', emailError.message);
+      logger.error('Staff approval email error:', emailError.message);
     }
 
     return res.json({
@@ -577,7 +578,7 @@ export const updateStaffApproval = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update staff approval error:', error);
+    logger.error('Update staff approval error:', error);
     return res.status(500).json({
       success: false,
       message: 'Something went wrong. Please try again later.'
@@ -627,7 +628,7 @@ export const getAllUsers = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get all users error:', error);
+    logger.error('Get all users error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
@@ -663,7 +664,7 @@ export const getUserById = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get user error:', error);
+    logger.error('Get user error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
@@ -691,7 +692,7 @@ export const deleteUser = async (req, res) => {
       deletedComplaints: deletedComplaints.deletedCount 
     });
   } catch (error) {
-    console.error('Delete user error:', error);
+    logger.error('Delete user error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };
@@ -734,7 +735,7 @@ export const getAllDepartments = async (req, res) => {
       departments: stats
     });
   } catch (error) {
-    console.error('Get departments error:', error);
+    logger.error('Get departments error:', error);
     res.status(500).json({ success: false, error: 'Something went wrong. Please try again later.' });
   }
 };

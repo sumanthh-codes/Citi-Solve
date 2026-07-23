@@ -1,4 +1,5 @@
 import cloudinary from '../config/cloudinary.js';
+import { logger } from './logger.js';
 export const uploadToCloudinary = (fileBuffer, folder = 'complaints') => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
@@ -39,7 +40,7 @@ export const deleteFromCloudinary = async (imageUrl) => {
     const result = await cloudinary.uploader.destroy(publicId);
     return result;
   } catch (error) {
-    console.error('Cloudinary delete error:', error);
+    logger.error('Cloudinary delete error:', error);
     throw error;
   }
 };

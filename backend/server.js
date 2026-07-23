@@ -12,6 +12,7 @@ import { multerErrorHandler } from "./src/middleware/errorhandler.js";
 import supportRouter from "./src/routes/supportRoutes.js";
 import staffRouter from "./src/routes/staffroutes.js";
 import adminRouter from "./src/routes/adminroutes.js";
+import { logger } from "./src/utils/logger.js";
 
 const app = express();
 const isProd = process.env.NODE_ENV === "production";
@@ -38,7 +39,7 @@ const connectDB = async () => {
     socketTimeoutMS: 45000,
   });
 
-  console.log("✅ MongoDB connected");
+  logger.info("✅ MongoDB connected");
   return cachedConnection;
 };
 
@@ -61,7 +62,7 @@ app.use(async (req, res, next) => {
     await connectDB();
     next();
   } catch (err) {
-    console.error("❌ MongoDB connection failed:", err.message);
+    logger.error("❌ MongoDB connection failed:", err.message);
     res.status(500).json({ success: false, message: "Database connection failed. Please try again." });
   }
 });
@@ -88,7 +89,7 @@ app.use((req, res) => {
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error(err);
+  logger.error(err);
   res.status(500).json({
     success: false,
     message: "Internal server error",
@@ -100,7 +101,7 @@ app.use((err, req, res, next) => {
 if (!isProd) {
   const PORT = process.env.PORT || 3000;
   connectDB().then(() => {
-    app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+    app.listen(PORT, () => logger.info(`Server running on ${PORT}`));
   });
 }
 

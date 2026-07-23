@@ -5,6 +5,7 @@ import userModel from '../models/usermodel.js';
 import transporter from "../config/nodemailer.js";
 import { WELCOME_EMAIL_TEMPLATE, EMAIL_VERIFY_TEMPLATE, PASSWORD_RESET_TEMPLATE } from '../config/emailTemplates.js';
 import { sendLoginSuccessEmail } from '../utils/loginAlert.js';
+import { logger } from '../utils/logger.js';
 
 const sendWelcomeEmail = async (name, email, role) => {
     const mailOptions = {
@@ -180,7 +181,7 @@ export const sendSignupOtp = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error in sendSignupOtp:', error.message);
+        logger.error('Error in sendSignupOtp:', error.message);
         return res.status(500).json({
             success: false,
             message: 'Something went wrong. Please try again later.'
@@ -283,7 +284,7 @@ export const verifySignupOtp = async (req, res) => {
         return res.json(response);
 
     } catch (error) {
-        console.error('Error in verifySignupOtp:', error.message);
+        logger.error('Error in verifySignupOtp:', error.message);
         return res.status(500).json({
             success: false,
             message: 'Something went wrong. Please try again later.'
@@ -353,7 +354,6 @@ export const resendSignupOtp = async (req, res) => {
 
 export const sendLoginOtp = async (req, res) => {
     const { email, password, role } = req.body;
-    console.log('Login attempt:', { email, role });
     if (!email || !password || !role) {
         return res.status(400).json({
             success: false,
@@ -363,7 +363,6 @@ export const sendLoginOtp = async (req, res) => {
 
     try {
         const user = await userModel.findOne({ email });
-        console.log('User found for login:', user ? { id: user._id, role: user.role } : null);
 
         if (!user || user.role !== role) {
             return res.status(401).json({
@@ -519,7 +518,7 @@ export const googleLogin = async (req, res) => {
             accessToken // always included for cross-origin Authorization header fallback
         });
     } catch (error) {
-        console.error('Google login error:', error);
+        logger.error('Google login error:', error);
         return res.status(401).json({
             success: false,
             message: 'Google login failed'
