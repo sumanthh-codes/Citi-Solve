@@ -13,6 +13,7 @@ import {
 import { citizenAuth } from '../middleware/citizen.js';
 import { upload, validateUploadedImages } from '../middleware/upload.js';
 import { complaintSubmitLimiter } from '../middleware/rateLimiter.js';
+import { validateComplaintSubmit } from '../middleware/validators.js';
 
 const complaintRouter = express.Router();
 
@@ -74,6 +75,7 @@ complaintRouter.post(
   complaintSubmitLimiter,
   upload.array('images', 5),
   validateUploadedImages,
+  validateComplaintSubmit,
   submitComplaint
 );
 

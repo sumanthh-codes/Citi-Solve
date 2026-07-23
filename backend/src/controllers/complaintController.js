@@ -138,108 +138,73 @@ export const submitComplaint = async (req, res) => {
   const aiWarnings = [];
   
   try {
-    const { title, description, category, state, district, landmark, pincode,comment } = req.body;
+    // Field validation (title/description/category/state/district/pincode/
+    // landmark/comment) is handled by the validateComplaintSubmit middleware.
+    const { title, description, category, state, district, landmark, pincode } = req.body;
     const citizenId = req.userId;
 
-    if (!title?.trim()) {
-      return res.status(400).json({ success: false, error: 'Title is required' });
-    }
-    if (!description?.trim()) {
-      return res.status(400).json({ success: false, error: 'Description is required' });
-    }
-    if (!category) {
-      return res.status(400).json({ success: false, error: 'Category is required' });
-    }
-    if (!VALID_CATEGORIES.includes(category)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: `Invalid category. Must be one of: roads, power, sanitation, water, other` 
-      });
-    }
-    if (!state?.trim()) {
-      return res.status(400).json({ success: false, error: 'State is required' });
-    }
-    if (!district?.trim()) {
-      return res.status(400).json({ success: false, error: 'District is required' });
-    }
-    if (!pincode?.trim()) {
-      return res.status(400).json({ success: false, error: 'Pincode is required' });
-    }
-    
-    // Validate pincode format
-    if (!/^\d{6}$/.test(pincode.trim())) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Pincode must be exactly 6 digits' 
-      });
-    }
-    if (comment && comment.trim().length > 500) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Comment cannot exceed 500 characters' 
-      });
-    }
-    
     if (!citizenId) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Authentication required' 
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
       });
     }
 
     if (req.files && req.files.length > 0) {
+      // Work off a single filtered list everywhere below — dropping empty /
+      // buffer-less parts — so validation, AI checks, and upload all agree on
+      // exactly which files are being processed.
+      const files = req.files.filter((f) => f && f.buffer && f.size > 0);
 
-  const files = (req.files || []).filter(
-  f => f && f.buffer && f.size > 0
-);
+      if (files.length > 5) {
+        return res.status(400).json({
+          success: false,
+          error: 'Maximum 5 images allowed'
+        });
+      }
 
-if (files.length > 5) {
-  return res.status(400).json({
-    success: false,
-    error: 'Maximum 5 images allowed'
-  });
-}
+      // Every file must be an image (check all, not just the first).
+      for (const file of files) {
+        if (!file.mimetype.startsWith('image/')) {
+          return res.status(400).json({
+            success: false,
+            error: 'Only image files are allowed'
+          });
+        }
+      }
 
-  for (const file of req.files) {
-    if (!file.mimetype.startsWith('image/')) {
-      return res.status(400).json({
-        success: false,
-        error: 'Only image files are allowed'
-      });
+      // =========================
+      // GEMINI CATEGORY VERIFICATION
+      // Verify EVERY uploaded image matches the selected category before we
+      // upload anything — otherwise a user could attach one valid image and
+      // sneak unrelated ones past the check. Block on the first failure.
+      // =========================
+      for (const file of files) {
+        const aiResult = await verifyImageWithGemini(file.buffer, file.mimetype, category);
+        logger.debug('AI verification result:', aiResult);
+
+        if (aiResult.decision === 'block') {
+          return res.status(400).json({
+            success: false,
+            error: `An image does not match the selected category "${category}". ${aiResult.reason} Please upload images that show the actual issue.`,
+            aiCheck: { failed: true, confidence: aiResult.confidence, reason: aiResult.reason }
+          });
+        }
+
+        if (aiResult.decision === 'warn') {
+          aiWarnings.push({
+            confidence: aiResult.confidence,
+            reason: aiResult.reason
+          });
+        }
+      }
+
+      // Upload all images to Cloudinary
+      for (const file of files) {
+        const url = await uploadToCloudinary(file.buffer, 'complaints');
+        uploadedUrls.push(url);
+      }
     }
-  }
-
-  // =========================
-  // GEMINI CATEGORY VERIFICATION
-  // Verify the first image matches the selected category before uploading
-  // =========================
-  const firstFile = files[0];
-  if (firstFile) {
-    const aiResult = await verifyImageWithGemini(firstFile.buffer, firstFile.mimetype, category);
-    logger.debug('AI verification result:', aiResult);
-
-    if (aiResult.decision === 'block') {
-      return res.status(400).json({
-        success: false,
-        error: `Image does not match the selected category "${category}". ${aiResult.reason} Please upload an image that shows the actual issue.`,
-        aiCheck: { failed: true, confidence: aiResult.confidence, reason: aiResult.reason }
-      });
-    }
-
-    if (aiResult.decision === 'warn') {
-      aiWarnings.push({
-        confidence: aiResult.confidence,
-        reason: aiResult.reason
-      });
-    }
-  }
-
-  // Upload all images to Cloudinary
-  for (const file of files) {
-    const url = await uploadToCloudinary(file.buffer, 'complaints');
-    uploadedUrls.push(url);
-  }
-}
 
     
 

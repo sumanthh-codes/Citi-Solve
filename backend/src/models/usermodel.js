@@ -132,6 +132,17 @@ const userSchema = new mongoose.Schema({
   
 }, { timestamps: true });
 
+// Auto-expire accounts that never completed email verification, so abandoned
+// signups don't squat the unique email forever. The partial filter means only
+// unverified accounts are ever expired — verified users are never touched.
+userSchema.index(
+  { createdAt: 1 },
+  {
+    expireAfterSeconds: 24 * 60 * 60,
+    partialFilterExpression: { isAccountVerified: false }
+  }
+);
+
 userSchema.set("toJSON", { virtuals: true });
 userSchema.set("toObject", { virtuals: true });
 

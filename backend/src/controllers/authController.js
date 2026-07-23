@@ -138,10 +138,16 @@ export const sendSignupOtp = async (req, res) => {
         const existingUser = await userModel.findOne({ email });
 
         if (existingUser) {
-            return res.status(409).json({
-                success: false,
-                message: 'User already exists with this email'
-            });
+            if (existingUser.isAccountVerified) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'User already exists with this email'
+                });
+            }
+            // An unverified account is squatting this email (someone started
+            // signup but never verified). Remove the stale record so this fresh
+            // signup can proceed instead of being blocked forever.
+            await userModel.deleteOne({ _id: existingUser._id });
         }
 
         const otp = String(Math.floor(100000 + Math.random() * 900000));

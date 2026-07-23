@@ -17,16 +17,19 @@ import { useEffect, useState } from "react";
 import AdminLayout from "./admin/adminportal.jsx";
 
 
-const ProtectedStaffRoute = ({ children }) => {
+// Client-side route guard. Confirms the user is authenticated and — when a
+// `role` is given — that their role matches, before rendering the page.
+// This is UX only; the backend middleware is the real authorization boundary.
+const ProtectedRoute = ({ role, children }) => {
   const [access, setAccess] = useState('checking');
 
   useEffect(() => {
-    const verifyStaffAccess = async () => {
+    const verifyAccess = async () => {
       try {
         const response = await apiFetch('/api/auth/is-authenticated');
         const data = await response.json();
 
-        if (response.ok && data.success && data.user?.role === 'staff') {
+        if (response.ok && data.success && (!role || data.user?.role === role)) {
           setAccess('allowed');
         } else {
           setAccess('denied');
@@ -36,8 +39,8 @@ const ProtectedStaffRoute = ({ children }) => {
       }
     };
 
-    verifyStaffAccess();
-  }, []);
+    verifyAccess();
+  }, [role]);
 
   if (access === 'checking') {
     return <div style={{ minHeight: '100vh', background: '#0a0a0a' }} />;
@@ -59,18 +62,18 @@ function App() {
     {/* Remove or keep this line commented out: <ScrollRestoration /> */}
     <Routes>
         <Route path="/" element={<CitiSolveLanding />} />
-        <Route path="/citizen/home" element={<CitizenPortal />} />
-        <Route path="/citizen/complaints" element={<Complaint />} />
-        <Route path="/citizen/submit" element = {<SubmitComplaint/>} />
-        <Route path="/citizen/faq" element = {<FAQ/>} />
-        <Route path="/citizen/userguide" element = {<UserGuide/>} />
-        <Route path="/staff/home" element={<ProtectedStaffRoute><StaffPortal /></ProtectedStaffRoute>} />
-        <Route path="/staff/departmentcomplaints" element={<ProtectedStaffRoute><DepartmentComplaints /></ProtectedStaffRoute>} />
-        <Route path="/staff/support" element={<ProtectedStaffRoute><SupportStaff /></ProtectedStaffRoute>} />
-        <Route path="/staff/userguide" element={<ProtectedStaffRoute><UserGuideStaff /></ProtectedStaffRoute>} />
-        <Route path="/staff/faq" element={<ProtectedStaffRoute><FaqStaff /></ProtectedStaffRoute>} />
-        <Route path="/staff/search" element={<ProtectedStaffRoute><SearchStaff /></ProtectedStaffRoute>} />
-        <Route path="/admin/*" element={<AdminLayout />} />
+        <Route path="/citizen/home" element={<ProtectedRoute role="citizen"><CitizenPortal /></ProtectedRoute>} />
+        <Route path="/citizen/complaints" element={<ProtectedRoute role="citizen"><Complaint /></ProtectedRoute>} />
+        <Route path="/citizen/submit" element={<ProtectedRoute role="citizen"><SubmitComplaint /></ProtectedRoute>} />
+        <Route path="/citizen/faq" element={<ProtectedRoute role="citizen"><FAQ /></ProtectedRoute>} />
+        <Route path="/citizen/userguide" element={<ProtectedRoute role="citizen"><UserGuide /></ProtectedRoute>} />
+        <Route path="/staff/home" element={<ProtectedRoute role="staff"><StaffPortal /></ProtectedRoute>} />
+        <Route path="/staff/departmentcomplaints" element={<ProtectedRoute role="staff"><DepartmentComplaints /></ProtectedRoute>} />
+        <Route path="/staff/support" element={<ProtectedRoute role="staff"><SupportStaff /></ProtectedRoute>} />
+        <Route path="/staff/userguide" element={<ProtectedRoute role="staff"><UserGuideStaff /></ProtectedRoute>} />
+        <Route path="/staff/faq" element={<ProtectedRoute role="staff"><FaqStaff /></ProtectedRoute>} />
+        <Route path="/staff/search" element={<ProtectedRoute role="staff"><SearchStaff /></ProtectedRoute>} />
+        <Route path="/admin/*" element={<ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>} />
     </Routes>
     </>
   )
