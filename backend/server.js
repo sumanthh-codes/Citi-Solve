@@ -13,6 +13,10 @@ import supportRouter from "./src/routes/supportRoutes.js";
 import staffRouter from "./src/routes/staffroutes.js";
 import adminRouter from "./src/routes/adminroutes.js";
 import { logger } from "./src/utils/logger.js";
+import { validateEnv } from "./src/config/validateEnv.js";
+
+// Fail fast if critical configuration is missing (runs on every cold start).
+validateEnv();
 
 const app = express();
 const isProd = process.env.NODE_ENV === "production";
