@@ -763,8 +763,17 @@ export const refreshAccessToken = async (req, res) => {
         }
 
         const newAccessToken = generateAccessToken(user._id, user.role);
+        const newRefreshToken = generateRefreshToken(user._id, user.role);
 
-        res.cookie('accessToken', newAccessToken, authCookieOptions(ACCESS_TOKEN_MAX_AGE));
+        // Rotate the refresh token: persist the new one and issue both cookies.
+        // Because we store and compare the current refresh token, the previous
+        // one is invalidated the moment this save lands — so a leaked/stale
+        // refresh token can't be reused (the next attempt fails the
+        // `user.refreshToken !== refreshToken` check above and returns 403).
+        user.refreshToken = newRefreshToken;
+        await user.save();
+
+        setTokenCookies(res, newAccessToken, newRefreshToken);
 
         res.json({
             success: true,
